@@ -1,0 +1,93 @@
+---
+import type { Tables } from "@repo/types";
+import { getInitials, getCertColor, generateCoachSlug } from "../lib/utils";
+import CertBadge from "./CertBadge.astro";
+
+interface Props {
+  coach: Tables<"coaches">;
+  locale?: string;
+}
+
+const { coach, locale } = Astro.props;
+const slug = generateCoachSlug(coach.id, coach.full_name);
+const prefix = locale ? `/${locale}` : "";
+const initials = getInitials(coach.full_name);
+const { bg: certBg, text: certText } = getCertColor(coach.certification_level);
+const displayTags = coach.specializations.slice(0, 3);
+const extraCount = coach.specializations.length - 3;
+const location = [coach.city, coach.country].filter(Boolean).join(", ");
+---
+
+<article
+  class="relative bg-surface rounded-xl border border-border shadow-sm hover:-translate-y-1 hover:shadow-md transition-all pt-12 pb-5 px-5 text-center group"
+  data-coach-card
+  data-coach-id={coach.id}
+  data-name={coach.full_name.toLowerCase()}
+  data-cert={coach.certification_level}
+  data-languages={coach.languages.join(",").toLowerCase()}
+>
+  {/* Photo / Avatar */}
+  <div class="absolute -top-10 left-1/2 -translate-x-1/2">
+    {coach.photo_url ? (
+      <img
+        src={coach.photo_url}
+        alt={coach.full_name}
+        class="w-20 h-20 rounded-full object-cover border-4 border-surface shadow-sm group-hover:scale-105 transition-transform"
+      />
+    ) : (
+      <div
+        class="w-20 h-20 rounded-full border-4 border-surface shadow-sm flex items-center justify-center text-xl font-bold text-white font-heading"
+        style={`background-color:${certText}`}
+      >
+        {initials}
+      </div>
+    )}
+  </div>
+
+  {/* Name */}
+  <h3 class="text-lg font-semibold font-heading mt-1 mb-1.5">
+    {coach.full_name}
+  </h3>
+
+  {/* Certification */}
+  <div class="mb-2">
+    <CertBadge level={coach.certification_level} />
+  </div>
+
+  {/* Location */}
+  {location && (
+    <p class="text-xs text-text-muted mb-2">{location}</p>
+  )}
+
+  {/* Languages */}
+  {coach.languages.length > 0 && (
+    <p class="text-xs text-text-secondary mb-3">
+      {coach.languages.join(" \u00B7 ")}
+    </p>
+  )}
+
+  {/* Specialization tags */}
+  {displayTags.length > 0 && (
+    <div class="flex flex-wrap justify-center gap-1.5 mb-4">
+      {displayTags.map((tag) => (
+        <span class="px-2 py-0.5 text-xs rounded-md bg-surface-muted text-text-secondary">
+          {tag}
+        </span>
+      ))}
+      {extraCount > 0 && (
+        <span class="px-2 py-0.5 text-xs rounded-md bg-surface-muted text-text-muted">
+          +{extraCount}
+        </span>
+      )}
+    </div>
+  )}
+
+  {/* Link */}
+  <a
+    href={`${prefix}/coaches/${slug}`}
+    class="inline-flex items-center gap-1 text-sm font-medium text-brand-primary group-hover:text-brand-accent transition-colors"
+  >
+    View Profile
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+  </a>
+</article>

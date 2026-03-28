@@ -1,0 +1,197 @@
+name: AI Site Edit
+
+on:
+  workflow_dispatch:
+    inputs:
+      chapter_slug:
+        description: "Chapter slug (e.g., nigeria, usa)"
+        required: true
+        type: string
+      prompt_text:
+        description: "Natural language edit instruction"
+        required: true
+        type: string
+      branch_name:
+        description: "Branch to commit changes to"
+        required: true
+        type: string
+      deployment_id:
+        description: "Supabase deployment record ID for status updates"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  ai-edit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout existing branch
+        run: |
+          git fetch origin "${{ inputs.branch_name }}"
+          git checkout "${{ inputs.branch_name }}"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Update deployment status to building
+        run: |
+          curl -s -X PATCH \
+            "${{ env.SUPABASE_URL }}/rest/v1/deployments?id=eq.${{ inputs.deployment_id }}" \
+            -H "apikey: ${{ env.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Authorization: Bearer ${{ env.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json" \
+            -H "Prefer: return=minimal" \
+            -d '{"status": "building"}'
+
+      - name: Run AI edit on chapter folder
+        run: |
+          CHAPTER_DIR="apps/chapter-${{ inputs.chapter_slug }}"
+
+          # Fall back to chapter-template if per-chapter folder doesn't exist yet
+          if [ ! -d "$CHAPTER_DIR" ]; then
+            CHAPTER_DIR="apps/chapter-template"
+          fi
+
+          echo "Working directory: $CHAPTER_DIR"
+
+          # Collect context: list the chapter files for the AI
+          FILE_LIST=$(find "$CHAPTER_DIR/src" -type f \( -name "*.astro" -o -name "*.ts" -o -name "*.css" \) 2>/dev/null | head -50)
+
+          # Read key files for context (limited to avoid token overflow)
+          CONTEXT=""
+          for f in $FILE_LIST; do
+            if [ -f "$f" ]; then
+              CONTENT=$(head -100 "$f")
+              CONTEXT="$CONTEXT
+
+          --- FILE: $f ---
+          $CONTENT"
+            fi
+          done
+
+          # Call Gemini API to generate edits
+          ESCAPED_PROMPT=$(echo "${{ inputs.prompt_text }}" | jq -Rs .)
+          ESCAPED_CONTEXT=$(echo "$CONTEXT" | jq -Rs .)
+
+          REQUEST_BODY=$(cat <<GEMINI_EOF
+          {
+            "contents": [{
+              "parts": [{
+                "text": "You are an expert Astro/web developer. You are editing a WIAL chapter website.\n\nThe user wants the following change:\n${ESCAPED_PROMPT//\"/\\\"}\n\nHere are the current files in the chapter directory:\n${ESCAPED_CONTEXT//\"/\\\"}\n\nRespond with a JSON array of file edits. Each edit object has:\n- \"path\": the file path relative to the repo root\n- \"content\": the complete new file content\n\nOnly include files that need changes. Return valid JSON only, no markdown fences."
+              }]
+            }],
+            "generationConfig": {
+              "temperature": 0.2,
+              "maxOutputTokens": 8192,
+              "responseMimeType": "application/json"
+            }
+          }
+          GEMINI_EOF
+          )
+
+          RESPONSE=$(curl -s -X POST \
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${{ env.GEMINI_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d "$REQUEST_BODY")
+
+          # Extract the text content from Gemini response
+          EDITS=$(echo "$RESPONSE" | jq -r '.candidates[0].content.parts[0].text // empty')
+
+          if [ -z "$EDITS" ]; then
+            echo "Error: No edits returned from AI"
+            echo "$RESPONSE" | jq . 2>/dev/null || echo "$RESPONSE"
+            exit 1
+          fi
+
+          # Apply edits
+          echo "$EDITS" | jq -c '.[]' | while read -r edit; do
+            FILE_PATH=$(echo "$edit" | jq -r '.path')
+            FILE_CONTENT=$(echo "$edit" | jq -r '.content')
+
+            # Security: ensure edits are scoped to the chapter directory or packages/template-core
+            case "$FILE_PATH" in
+              apps/chapter-${{ inputs.chapter_slug }}/*|apps/chapter-template/*)
+                echo "Applying edit to: $FILE_PATH"
+                mkdir -p "$(dirname "$FILE_PATH")"
+                echo "$FILE_CONTENT" > "$FILE_PATH"
+                ;;
+              *)
+                echo "BLOCKED: Edit to $FILE_PATH is outside allowed scope"
+                ;;
+            esac
+          done
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit and push changes
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          git config user.name "WIAL AI Editor"
+          git config user.email "ai-editor@wial.ashwanthbk.com"
+          git add -A
+          git commit -m "AI edit: ${{ inputs.prompt_text }}"
+          git push origin "${{ inputs.branch_name }}"
+
+      - name: Construct preview URL
+        if: steps.changes.outputs.has_changes == 'true'
+        id: preview
+        run: |
+          # Cloudflare Pages branch preview URL pattern
+          BRANCH_SLUG=$(echo "${{ inputs.branch_name }}" | sed 's/[^a-zA-Z0-9]/-/g' | tr '[:upper:]' '[:lower:]' | head -c 28)
+          PREVIEW_URL="https://${BRANCH_SLUG}.wial-${{ inputs.chapter_slug }}.pages.dev"
+          echo "preview_url=$PREVIEW_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Update deployment with preview URL
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          curl -s -X PATCH \
+            "${{ env.SUPABASE_URL }}/rest/v1/deployments?id=eq.${{ inputs.deployment_id }}" \
+            -H "apikey: ${{ env.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Authorization: Bearer ${{ env.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json" \
+            -H "Prefer: return=minimal" \
+            -d "{\"status\": \"deploying\", \"preview_url\": \"${{ steps.preview.outputs.preview_url }}\", \"approval_status\": \"pending\", \"commit_reference\": \"${{ inputs.branch_name }}\"}"
+
+      - name: Update deployment on no changes
+        if: steps.changes.outputs.has_changes == 'false'
+        run: |
+          curl -s -X PATCH \
+            "${{ env.SUPABASE_URL }}/rest/v1/deployments?id=eq.${{ inputs.deployment_id }}" \
+            -H "apikey: ${{ env.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Authorization: Bearer ${{ env.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json" \
+            -H "Prefer: return=minimal" \
+            -d '{"status": "done", "error_message": "AI produced no file changes for this prompt.", "completed_at": "'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'"}'
+
+      - name: Update deployment on failure
+        if: failure()
+        run: |
+          curl -s -X PATCH \
+            "${{ env.SUPABASE_URL }}/rest/v1/deployments?id=eq.${{ inputs.deployment_id }}" \
+            -H "apikey: ${{ env.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Authorization: Bearer ${{ env.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json" \
+            -H "Prefer: return=minimal" \
+            -d '{"status": "failed", "error_message": "AI edit workflow failed. Check GitHub Actions logs.", "completed_at": "'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'"}'

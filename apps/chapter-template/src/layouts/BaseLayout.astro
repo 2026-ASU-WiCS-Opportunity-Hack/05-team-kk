@@ -1,0 +1,97 @@
+---
+import "../styles/global.css";
+import { getChapterData } from "../lib/data";
+import { getBlock } from "../lib/content";
+import { derivePrimaryDark, derivePrimaryLight, deriveAccentLight } from "../lib/utils";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import SkipLink from "../components/SkipLink.astro";
+
+interface Props {
+  title: string;
+  description?: string;
+  locale?: string;
+}
+
+const { title, description, locale } = Astro.props;
+const slug = import.meta.env.CHAPTER_SLUG;
+const { chapter, contentBlocks, clientOrganizations } = await getChapterData(slug, locale);
+const resolvedLocale = locale ?? chapter.default_language;
+
+const pageTitle = `${title} | ${chapter.name}`;
+const metaDescription =
+  description || getBlock(contentBlocks, "hero_description", `${chapter.name} — Action Learning`);
+
+// Branding values
+const primaryColor = chapter.brand_primary_color;
+const secondaryColor = chapter.brand_secondary_color;
+const accentColor = chapter.brand_accent_color;
+const brandFont = chapter.brand_font || "Lexend";
+const logoUrl = chapter.brand_logo_url;
+
+// Derived colors
+const primaryDark = derivePrimaryDark(primaryColor);
+const primaryLight = derivePrimaryLight(primaryColor, 0.05);
+const accentLight = deriveAccentLight(accentColor);
+
+// Google Fonts URL
+const fontFamilies = ["Lexend:wght@400;500;600;700", "Source+Sans+3:wght@400;600;700"];
+if (brandFont !== "Lexend" && brandFont !== "Source Sans 3") {
+  fontFamilies.push(`${brandFont.replace(/ /g, "+")}:wght@400;600;700`);
+}
+const googleFontsUrl = `https://fonts.googleapis.com/css2?${fontFamilies.map((f) => `family=${f}`).join("&")}&display=swap`;
+
+// CSS custom properties string
+const cssVars = [
+  `--color-brand-primary:${primaryColor}`,
+  `--color-brand-secondary:${secondaryColor}`,
+  `--color-brand-accent:${accentColor}`,
+  `--color-brand-primary-dark:${primaryDark}`,
+  `--color-brand-primary-light:${primaryLight}`,
+  `--color-brand-accent-light:${accentLight}`,
+  `--font-heading:'${brandFont}','Lexend',sans-serif`,
+  `--font-body:'Source Sans 3',sans-serif`,
+].join(";");
+---
+
+<!doctype html>
+<html lang={resolvedLocale} style={cssVars}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={metaDescription} />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={metaDescription} />
+    <meta property="og:type" content="website" />
+    {logoUrl && <meta property="og:image" content={logoUrl} />}
+
+    <!-- Save-Data detection: add save-data class to html for CSS text-only mode -->
+    <script is:inline>
+      if (navigator.connection && navigator.connection.saveData) {
+        document.documentElement.classList.add('save-data');
+      }
+    </script>
+
+    <!-- Google Fonts (skipped in save-data mode via noscript-safe preload) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href={googleFontsUrl} rel="stylesheet" />
+  </head>
+  <body class="min-h-screen flex flex-col">
+    <SkipLink />
+    <Header
+      chapter={chapter}
+      contentBlocks={contentBlocks}
+      currentPath={Astro.url.pathname}
+      locale={resolvedLocale}
+      activeLanguages={chapter.active_languages}
+    />
+    <main id="main-content" class="flex-1">
+      <slot />
+    </main>
+    <Footer chapter={chapter} contentBlocks={contentBlocks} chapterSlug={slug} locale={resolvedLocale} clientOrganizations={clientOrganizations} />
+  </body>
+</html>

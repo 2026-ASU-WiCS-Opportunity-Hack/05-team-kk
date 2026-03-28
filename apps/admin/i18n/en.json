@@ -1,0 +1,142 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "chapters": "Chapters",
+    "coachDirectory": "Coach Directory",
+    "coaches": "Coaches",
+    "content": "Content",
+    "testimonials": "Testimonials",
+    "events": "Events",
+    "globalEvents": "Global Events",
+    "clients": "Client Organizations",
+    "users": "Users",
+    "deployments": "Deployments",
+    "settings": "Settings",
+    "chapterSettings": "Chapter Settings",
+    "myProfile": "My Profile",
+    "aiEditor": "AI Editor"
+  },
+  "common": {
+    "save": "Save",
+    "saveChanges": "Save Changes",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "add": "Add",
+    "remove": "Remove",
+    "search": "Search",
+    "filter": "Filter",
+    "loading": "Loading...",
+    "noResults": "No results found",
+    "selectChapter": "Select a chapter",
+    "allTypes": "All Types",
+    "allStatus": "All Status",
+    "published": "Published",
+    "draft": "Draft",
+    "upcoming": "Upcoming",
+    "past": "Past",
+    "allDates": "All Dates",
+    "active": "Active",
+    "inactive": "Inactive",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "dashboard": {
+    "welcome": "Welcome back",
+    "selectChapterPrompt": "Select a chapter to get started."
+  },
+  "chapters": {
+    "title": "Chapters",
+    "createNew": "Create Chapter",
+    "noChapters": "No chapters yet",
+    "noChaptersDesc": "Create your first chapter to start building the global network."
+  },
+  "coaches": {
+    "title": "Coaches",
+    "addCoach": "Add Coach",
+    "manageRoster": "Manage your chapter's coach roster.",
+    "viewAll": "View coaches across all chapters.",
+    "noCoaches": "No coaches yet",
+    "noCoachesDesc": "Add your first coach to start building the directory.",
+    "certification": "Certification",
+    "recertDue": "Recertification Due",
+    "ceCredits": "CE Credits Earned",
+    "approvedForDirectory": "Approved for public directory",
+    "notApprovedWarning": "This coach will not appear in the public directory until approved.",
+    "myCertification": "My Certification",
+    "currentLevel": "Current Level",
+    "hoursLogged": "Hours Logged"
+  },
+  "events": {
+    "title": "Events",
+    "createEvent": "Create Event",
+    "manageEvents": "Manage events for your chapter.",
+    "viewAllEvents": "View events across all chapters.",
+    "noEvents": "No events yet",
+    "noEventsDesc": "Create your first event to share with your community.",
+    "eventTitle": "Title",
+    "description": "Description",
+    "eventType": "Event Type",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "location": "Location",
+    "virtualEvent": "Virtual Event",
+    "virtualLink": "Virtual Link",
+    "maxAttendees": "Max Attendees",
+    "registrationLink": "Registration Link",
+    "publishToWebsite": "Publish to website",
+    "certification": "Certification",
+    "workshop": "Workshop",
+    "meetup": "Meetup",
+    "webinar": "Webinar",
+    "virtual": "Virtual",
+    "unlimited": "Unlimited",
+    "comingUp": "Coming up"
+  },
+  "clients": {
+    "title": "Client Organizations",
+    "addClient": "Add Client",
+    "description": "Manage partner and client logos displayed on your website.",
+    "noClients": "No clients yet",
+    "noClientsDesc": "Add client organizations to showcase on your chapter website.",
+    "orgName": "Organization Name",
+    "logoUrl": "Logo URL",
+    "websiteUrl": "Website URL",
+    "sortOrder": "Sort Order"
+  },
+  "testimonials": {
+    "title": "Testimonials",
+    "addTestimonial": "Add Testimonial",
+    "description": "Manage client testimonials for your chapter.",
+    "noTestimonials": "No testimonials yet",
+    "noTestimonialsDesc": "Add your first testimonial to showcase on your chapter website."
+  },
+  "content": {
+    "title": "Content",
+    "newBlock": "New Block",
+    "editor": "Editor",
+    "aiGenerate": "AI Generate",
+    "translate": "Translate",
+    "discardChanges": "Discard Changes"
+  },
+  "deployments": {
+    "title": "Deployments",
+    "deployNow": "Deploy Now",
+    "building": "Building...",
+    "liveSite": "Live Site"
+  },
+  "users": {
+    "title": "Users",
+    "sendInvite": "Send Invite",
+    "members": "Members",
+    "invitations": "Invitations"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "signInTitle": "Sign in to your account",
+    "signInSubtitle": "Manage your chapter, coaches, and content",
+    "invitationPrompt": "Received an invitation? Check your email for the signup link."
+  }
+}

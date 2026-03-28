@@ -1,0 +1,142 @@
+{
+  "nav": {
+    "dashboard": "Panel",
+    "chapters": "Capítulos",
+    "coachDirectory": "Directorio de Coaches",
+    "coaches": "Coaches",
+    "content": "Contenido",
+    "testimonials": "Testimonios",
+    "events": "Eventos",
+    "globalEvents": "Eventos Globales",
+    "clients": "Organizaciones Clientes",
+    "users": "Usuarios",
+    "deployments": "Despliegues",
+    "settings": "Configuración",
+    "chapterSettings": "Configuración del Capítulo",
+    "myProfile": "Mi Perfil",
+    "aiEditor": "Editor IA"
+  },
+  "common": {
+    "save": "Guardar",
+    "saveChanges": "Guardar Cambios",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "add": "Agregar",
+    "remove": "Quitar",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "loading": "Cargando...",
+    "noResults": "No se encontraron resultados",
+    "selectChapter": "Seleccionar un capítulo",
+    "allTypes": "Todos los Tipos",
+    "allStatus": "Todos los Estados",
+    "published": "Publicado",
+    "draft": "Borrador",
+    "upcoming": "Próximos",
+    "past": "Pasados",
+    "allDates": "Todas las Fechas",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "yes": "Sí",
+    "no": "No"
+  },
+  "dashboard": {
+    "welcome": "Bienvenido de nuevo",
+    "selectChapterPrompt": "Seleccione un capítulo para comenzar."
+  },
+  "chapters": {
+    "title": "Capítulos",
+    "createNew": "Crear Capítulo",
+    "noChapters": "Aún no hay capítulos",
+    "noChaptersDesc": "Cree su primer capítulo para comenzar a construir la red global."
+  },
+  "coaches": {
+    "title": "Coaches",
+    "addCoach": "Agregar Coach",
+    "manageRoster": "Administre el equipo de coaches de su capítulo.",
+    "viewAll": "Ver coaches de todos los capítulos.",
+    "noCoaches": "Aún no hay coaches",
+    "noCoachesDesc": "Agregue su primer coach para comenzar a construir el directorio.",
+    "certification": "Certificación",
+    "recertDue": "Vencimiento de Recertificación",
+    "ceCredits": "Créditos CE Obtenidos",
+    "approvedForDirectory": "Aprobado para el directorio público",
+    "notApprovedWarning": "Este coach no aparecerá en el directorio público hasta que sea aprobado.",
+    "myCertification": "Mi Certificación",
+    "currentLevel": "Nivel Actual",
+    "hoursLogged": "Horas Registradas"
+  },
+  "events": {
+    "title": "Eventos",
+    "createEvent": "Crear Evento",
+    "manageEvents": "Administre los eventos de su capítulo.",
+    "viewAllEvents": "Ver eventos de todos los capítulos.",
+    "noEvents": "Aún no hay eventos",
+    "noEventsDesc": "Cree su primer evento para compartir con su comunidad.",
+    "eventTitle": "Título",
+    "description": "Descripción",
+    "eventType": "Tipo de Evento",
+    "startDate": "Fecha de Inicio",
+    "endDate": "Fecha de Fin",
+    "location": "Ubicación",
+    "virtualEvent": "Evento Virtual",
+    "virtualLink": "Enlace Virtual",
+    "maxAttendees": "Máximo de Asistentes",
+    "registrationLink": "Enlace de Inscripción",
+    "publishToWebsite": "Publicar en el sitio web",
+    "certification": "Certificación",
+    "workshop": "Taller",
+    "meetup": "Encuentro",
+    "webinar": "Seminario Web",
+    "virtual": "Virtual",
+    "unlimited": "Ilimitado",
+    "comingUp": "Próximamente"
+  },
+  "clients": {
+    "title": "Organizaciones Clientes",
+    "addClient": "Agregar Cliente",
+    "description": "Administre los logos de socios y clientes que se muestran en su sitio web.",
+    "noClients": "Aún no hay clientes",
+    "noClientsDesc": "Agregue organizaciones clientes para mostrar en el sitio web de su capítulo.",
+    "orgName": "Nombre de la Organización",
+    "logoUrl": "URL del Logo",
+    "websiteUrl": "URL del Sitio Web",
+    "sortOrder": "Orden de Visualización"
+  },
+  "testimonials": {
+    "title": "Testimonios",
+    "addTestimonial": "Agregar Testimonio",
+    "description": "Administre los testimonios de clientes de su capítulo.",
+    "noTestimonials": "Aún no hay testimonios",
+    "noTestimonialsDesc": "Agregue su primer testimonio para mostrar en el sitio web de su capítulo."
+  },
+  "content": {
+    "title": "Contenido",
+    "newBlock": "Nuevo Bloque",
+    "editor": "Editor",
+    "aiGenerate": "Generar con IA",
+    "translate": "Traducir",
+    "discardChanges": "Descartar Cambios"
+  },
+  "deployments": {
+    "title": "Despliegues",
+    "deployNow": "Desplegar Ahora",
+    "building": "Construyendo...",
+    "liveSite": "Sitio en Vivo"
+  },
+  "users": {
+    "title": "Usuarios",
+    "sendInvite": "Enviar Invitación",
+    "members": "Miembros",
+    "invitations": "Invitaciones"
+  },
+  "auth": {
+    "signIn": "Iniciar Sesión",
+    "signOut": "Cerrar Sesión",
+    "signInTitle": "Inicie sesión en su cuenta",
+    "signInSubtitle": "Administre su capítulo, coaches y contenido",
+    "invitationPrompt": "¿Recibió una invitación? Revise su correo electrónico para el enlace de registro."
+  }
+}

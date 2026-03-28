@@ -1,0 +1,142 @@
+{
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "chapters": "Chapitres",
+    "coachDirectory": "Annuaire des Coachs",
+    "coaches": "Coachs",
+    "content": "Contenu",
+    "testimonials": "Témoignages",
+    "events": "Événements",
+    "globalEvents": "Événements Globaux",
+    "clients": "Organisations Clientes",
+    "users": "Utilisateurs",
+    "deployments": "Déploiements",
+    "settings": "Paramètres",
+    "chapterSettings": "Paramètres du Chapitre",
+    "myProfile": "Mon Profil",
+    "aiEditor": "Éditeur IA"
+  },
+  "common": {
+    "save": "Enregistrer",
+    "saveChanges": "Enregistrer les modifications",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "create": "Créer",
+    "add": "Ajouter",
+    "remove": "Retirer",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "loading": "Chargement...",
+    "noResults": "Aucun résultat trouvé",
+    "selectChapter": "Sélectionner un chapitre",
+    "allTypes": "Tous les Types",
+    "allStatus": "Tous les Statuts",
+    "published": "Publié",
+    "draft": "Brouillon",
+    "upcoming": "À venir",
+    "past": "Passés",
+    "allDates": "Toutes les Dates",
+    "active": "Actif",
+    "inactive": "Inactif",
+    "yes": "Oui",
+    "no": "Non"
+  },
+  "dashboard": {
+    "welcome": "Bon retour",
+    "selectChapterPrompt": "Sélectionnez un chapitre pour commencer."
+  },
+  "chapters": {
+    "title": "Chapitres",
+    "createNew": "Créer un Chapitre",
+    "noChapters": "Aucun chapitre pour le moment",
+    "noChaptersDesc": "Créez votre premier chapitre pour commencer à développer le réseau mondial."
+  },
+  "coaches": {
+    "title": "Coachs",
+    "addCoach": "Ajouter un Coach",
+    "manageRoster": "Gérez l'équipe de coachs de votre chapitre.",
+    "viewAll": "Voir les coachs de tous les chapitres.",
+    "noCoaches": "Aucun coach pour le moment",
+    "noCoachesDesc": "Ajoutez votre premier coach pour commencer à constituer l'annuaire.",
+    "certification": "Certification",
+    "recertDue": "Échéance de Recertification",
+    "ceCredits": "Crédits CE Obtenus",
+    "approvedForDirectory": "Approuvé pour l'annuaire public",
+    "notApprovedWarning": "Ce coach n'apparaîtra pas dans l'annuaire public tant qu'il n'aura pas été approuvé.",
+    "myCertification": "Ma Certification",
+    "currentLevel": "Niveau Actuel",
+    "hoursLogged": "Heures Enregistrées"
+  },
+  "events": {
+    "title": "Événements",
+    "createEvent": "Créer un Événement",
+    "manageEvents": "Gérez les événements de votre chapitre.",
+    "viewAllEvents": "Voir les événements de tous les chapitres.",
+    "noEvents": "Aucun événement pour le moment",
+    "noEventsDesc": "Créez votre premier événement à partager avec votre communauté.",
+    "eventTitle": "Titre",
+    "description": "Description",
+    "eventType": "Type d'Événement",
+    "startDate": "Date de Début",
+    "endDate": "Date de Fin",
+    "location": "Lieu",
+    "virtualEvent": "Événement Virtuel",
+    "virtualLink": "Lien Virtuel",
+    "maxAttendees": "Nombre Maximum de Participants",
+    "registrationLink": "Lien d'Inscription",
+    "publishToWebsite": "Publier sur le site web",
+    "certification": "Certification",
+    "workshop": "Atelier",
+    "meetup": "Rencontre",
+    "webinar": "Webinaire",
+    "virtual": "Virtuel",
+    "unlimited": "Illimité",
+    "comingUp": "Bientôt"
+  },
+  "clients": {
+    "title": "Organisations Clientes",
+    "addClient": "Ajouter un Client",
+    "description": "Gérez les logos de partenaires et clients affichés sur votre site web.",
+    "noClients": "Aucun client pour le moment",
+    "noClientsDesc": "Ajoutez des organisations clientes à présenter sur le site web de votre chapitre.",
+    "orgName": "Nom de l'Organisation",
+    "logoUrl": "URL du Logo",
+    "websiteUrl": "URL du Site Web",
+    "sortOrder": "Ordre d'Affichage"
+  },
+  "testimonials": {
+    "title": "Témoignages",
+    "addTestimonial": "Ajouter un Témoignage",
+    "description": "Gérez les témoignages clients de votre chapitre.",
+    "noTestimonials": "Aucun témoignage pour le moment",
+    "noTestimonialsDesc": "Ajoutez votre premier témoignage à présenter sur le site web de votre chapitre."
+  },
+  "content": {
+    "title": "Contenu",
+    "newBlock": "Nouveau Bloc",
+    "editor": "Éditeur",
+    "aiGenerate": "Générer par IA",
+    "translate": "Traduire",
+    "discardChanges": "Annuler les modifications"
+  },
+  "deployments": {
+    "title": "Déploiements",
+    "deployNow": "Déployer Maintenant",
+    "building": "Construction en cours...",
+    "liveSite": "Site en Ligne"
+  },
+  "users": {
+    "title": "Utilisateurs",
+    "sendInvite": "Envoyer une Invitation",
+    "members": "Membres",
+    "invitations": "Invitations"
+  },
+  "auth": {
+    "signIn": "Se Connecter",
+    "signOut": "Se Déconnecter",
+    "signInTitle": "Connectez-vous à votre compte",
+    "signInSubtitle": "Gérez votre chapitre, vos coachs et votre contenu",
+    "invitationPrompt": "Vous avez reçu une invitation ? Consultez votre e-mail pour le lien d'inscription."
+  }
+}

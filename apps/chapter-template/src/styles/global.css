@@ -1,0 +1,341 @@
+@import "tailwindcss";
+
+/* ===== Brand CSS Custom Properties (fallbacks, overridden at build time) ===== */
+:root {
+  --color-brand-primary: #1a7a8a;
+  --color-brand-secondary: #2e8e9e;
+  --color-brand-accent: #d4a900;
+  --color-brand-primary-dark: #0d3d45;
+  --color-brand-primary-light: rgba(26, 122, 138, 0.05);
+  --color-brand-accent-light: rgba(212, 169, 0, 0.15);
+  --font-heading: "Lexend", sans-serif;
+  --font-body: "Source Sans 3", sans-serif;
+}
+
+/* ===== Register brand tokens with Tailwind v4 ===== */
+@theme inline {
+  --color-brand-primary: var(--color-brand-primary);
+  --color-brand-secondary: var(--color-brand-secondary);
+  --color-brand-accent: var(--color-brand-accent);
+  --color-brand-primary-dark: var(--color-brand-primary-dark);
+  --color-brand-primary-light: var(--color-brand-primary-light);
+  --color-brand-accent-light: var(--color-brand-accent-light);
+  --color-cert-calc: #3b82f6;
+  --color-cert-salc: #16a34a;
+  --color-cert-malc: #d97706;
+  --color-cert-palc: #7c3aed;
+  --color-warm-ivory: #faf8f5;
+  --color-warm-charcoal: #2d2a26;
+  --color-text-primary: #1f1d1a;
+  --color-text-secondary: #6b6560;
+  --color-text-muted: #a39e98;
+  --color-border: #e5e0da;
+  --color-border-subtle: #f0ece7;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f5f3f0;
+  --color-destructive: #dc2626;
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --font-family-heading: var(--font-heading);
+  --font-family-body: var(--font-body);
+}
+
+/* ===== Base Styles ===== */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-text-primary);
+  background-color: var(--color-warm-ivory);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  line-height: 1.2;
+  color: var(--color-text-primary);
+}
+
+h1 { font-size: 2.25rem; font-weight: 600; letter-spacing: -0.01em; }
+h2 { font-size: 1.75rem; font-weight: 600; }
+h3 { font-size: 1.375rem; font-weight: 500; line-height: 1.3; }
+h4 { font-size: 1.125rem; font-weight: 500; line-height: 1.4; }
+
+a {
+  color: var(--color-brand-primary);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+::selection {
+  background-color: var(--color-brand-accent-light);
+  color: var(--color-text-primary);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ===== Focus Indicators ===== */
+:focus-visible {
+  outline: 2px solid var(--color-brand-accent);
+  outline-offset: 2px;
+}
+
+/* ===== Skip Link ===== */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 16px;
+  z-index: 100;
+  padding: 8px 16px;
+  background: var(--color-surface);
+  color: var(--color-brand-primary);
+  border: 2px solid var(--color-brand-primary);
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+.skip-link:focus {
+  top: 16px;
+}
+
+/* ===== Hamburger Menu (Pure CSS) ===== */
+#nav-toggle {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.hamburger-btn {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 44px;
+  height: 44px;
+  padding: 10px;
+  cursor: pointer;
+  z-index: 60;
+  position: relative;
+}
+
+.hamburger-line {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background-color: var(--color-text-primary);
+  border-radius: 2px;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+#nav-toggle:checked ~ .hamburger-btn .hamburger-line:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+#nav-toggle:checked ~ .hamburger-btn .hamburger-line:nth-child(2) {
+  opacity: 0;
+}
+#nav-toggle:checked ~ .hamburger-btn .hamburger-line:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+.mobile-nav {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: var(--color-surface);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  transform: translateX(100%);
+  transition: transform 0.25s ease-out;
+}
+
+#nav-toggle:checked ~ .mobile-nav {
+  transform: translateX(0);
+}
+
+.mobile-nav a {
+  font-family: var(--font-heading);
+  font-size: 1.375rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+}
+.mobile-nav a:hover,
+.mobile-nav a[aria-current="page"] {
+  color: var(--color-brand-primary);
+  background-color: var(--color-brand-primary-light);
+}
+
+/* ===== Accordion (details/summary) ===== */
+details {
+  border-left: 3px solid var(--color-brand-accent);
+  border-radius: 0 8px 8px 0;
+  background: var(--color-surface);
+  margin-bottom: 12px;
+}
+
+details summary {
+  padding: 16px 20px;
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 1.125rem;
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+details summary::after {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid var(--color-text-secondary);
+  border-bottom: 2px solid var(--color-text-secondary);
+  transform: rotate(-45deg);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+details[open] summary::after {
+  transform: rotate(45deg);
+}
+
+details summary::-webkit-details-marker {
+  display: none;
+}
+
+details > div,
+details > p {
+  padding: 0 20px 16px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+/* ===== Rich Text Content ===== */
+.prose {
+  max-width: 42rem;
+}
+.prose h2 { margin-top: 2rem; margin-bottom: 0.75rem; }
+.prose h3 { margin-top: 1.5rem; margin-bottom: 0.5rem; }
+.prose p { margin-bottom: 1rem; }
+.prose ul, .prose ol { margin-bottom: 1rem; padding-left: 1.5rem; }
+.prose li { margin-bottom: 0.25rem; }
+.prose a { text-decoration: underline; }
+.prose strong { font-weight: 600; }
+.prose em { font-style: italic; }
+
+/* ===== Certification Badge Colors ===== */
+.cert-calc { background-color: rgba(59, 130, 246, 0.15); color: #2563eb; border-left: 2px solid #3b82f6; }
+.cert-salc { background-color: rgba(22, 163, 74, 0.15); color: #15803d; border-left: 2px solid #16a34a; }
+.cert-malc { background-color: rgba(217, 119, 6, 0.15); color: #b45309; border-left: 2px solid #d97706; }
+.cert-palc { background-color: rgba(124, 58, 237, 0.15); color: #6d28d9; border-left: 2px solid #7c3aed; }
+
+/* ===== Low-Bandwidth / Text-Only Mode ===== */
+/* Activates automatically when the user has data saver enabled or prefers reduced data */
+@media (prefers-reduced-data: reduce) {
+  /* Hide all images */
+  img, picture, video, iframe, svg.decorative {
+    display: none !important;
+  }
+
+  /* Remove background images and decorative gradients */
+  *[style*="background"],
+  *[style*="gradient"] {
+    background-image: none !important;
+    background-color: transparent !important;
+  }
+
+  /* Strip decorative shadows and transforms */
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+    transform: none !important;
+  }
+
+  /* Force single column layout */
+  .grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Use system fonts to avoid font file downloads */
+  body, h1, h2, h3, h4, h5, h6 {
+    font-family: system-ui, -apple-system, sans-serif !important;
+  }
+
+  /* Simplify section backgrounds */
+  section, footer, header {
+    background-color: white !important;
+    background-image: none !important;
+  }
+
+  footer {
+    background-color: #2d2a26 !important;
+  }
+
+  /* Collapse decorative spacing */
+  section {
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+  }
+
+  /* Show alt text for hidden images */
+  img::after {
+    content: attr(alt);
+    display: block;
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+  }
+
+  /* Make coach cards simpler */
+  [data-coach-card] {
+    padding-top: 1rem !important;
+    border-radius: 0 !important;
+  }
+}
+
+/* Also support the Save-Data client hint via a utility class
+   (applied by a Cloudflare Worker or service worker when Save-Data: on header is detected) */
+.save-data img,
+.save-data picture,
+.save-data video,
+.save-data iframe:not([title="Location map"]) {
+  display: none !important;
+}
+
+.save-data * {
+  box-shadow: none !important;
+  text-shadow: none !important;
+  transform: none !important;
+  background-image: none !important;
+}
+
+.save-data body, .save-data h1, .save-data h2, .save-data h3, .save-data h4 {
+  font-family: system-ui, -apple-system, sans-serif !important;
+}
+
+.save-data .grid {
+  grid-template-columns: 1fr !important;
+}
+
+.save-data section {
+  padding-top: 1rem !important;
+  padding-bottom: 1rem !important;
+  background-color: white !important;
+}

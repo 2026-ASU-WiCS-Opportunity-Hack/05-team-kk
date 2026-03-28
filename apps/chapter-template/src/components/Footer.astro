@@ -1,0 +1,229 @@
+---
+import type { Tables } from "@repo/types";
+import type { ContentBlockMap } from "../lib/content";
+import { getBlock, getJsonBlock } from "../lib/content";
+import SocialIcon from "./SocialIcon.astro";
+
+interface Props {
+  chapter: Tables<"chapters">;
+  contentBlocks: ContentBlockMap;
+  chapterSlug: string;
+  locale?: string;
+  clientOrganizations?: Tables<"client_organizations">[];
+}
+
+const { chapter, contentBlocks, chapterSlug, locale, clientOrganizations = [] } = Astro.props;
+const prefix = locale ? `/${locale}` : "";
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+
+const footerDescription = getBlock(contentBlocks, "footer_description", "");
+const copyright = getBlock(
+  contentBlocks,
+  "footer_copyright",
+  `\u00A9 ${new Date().getFullYear()} ${chapter.name}. All rights reserved.`
+);
+
+interface SocialLink {
+  platform: string;
+  url: string;
+}
+const socialLinks = getJsonBlock<SocialLink[]>(contentBlocks, "footer_social_links") ?? [];
+
+// Use client_organizations table data; fall back to legacy JSON content block
+interface ClientLogo {
+  name: string;
+  image_url: string;
+  website_url?: string;
+}
+const clientLogos: ClientLogo[] = clientOrganizations.length > 0
+  ? clientOrganizations.map((c) => ({ name: c.name, image_url: c.logo_url ?? "", website_url: c.website_url ?? undefined })).filter((c) => c.image_url)
+  : (getJsonBlock<ClientLogo[]>(contentBlocks, "footer_client_logos") ?? []);
+
+const newsletterEnabled = getBlock(contentBlocks, "footer_newsletter_enabled", "false") === "true";
+
+const navLinks = [
+  { href: `${prefix}/`, label: "Home" },
+  { href: `${prefix}/about`, label: "About" },
+  { href: `${prefix}/action-learning`, label: "Action Learning" },
+  { href: `${prefix}/coaches`, label: "Coaches" },
+  { href: `${prefix}/testimonials`, label: "Testimonials" },
+  { href: `${prefix}/events`, label: "Events" },
+  { href: `${prefix}/resources`, label: "Resources" },
+  { href: `${prefix}/contact`, label: "Contact" },
+  { href: `${prefix}/join`, label: "Join" },
+];
+---
+
+<footer class="bg-brand-primary-dark text-white/90">
+  {/* Client logos carousel */}
+  {clientLogos.length > 0 && (
+    <div class="border-b border-white/10 py-8">
+      <div class="mx-auto max-w-[1200px] px-4 sm:px-6">
+        <p class="text-xs uppercase tracking-widest text-white/50 mb-4 text-center font-heading">
+          Trusted By
+        </p>
+        <div class="flex items-center gap-8 overflow-x-auto pb-2">
+          {clientLogos.map((logo) => logo.website_url ? (
+            <a href={logo.website_url} target="_blank" rel="noopener noreferrer" class="flex-shrink-0">
+              <img
+                src={logo.image_url}
+                alt={logo.name}
+                class="h-8 w-auto opacity-70 hover:opacity-100 transition-opacity"
+              />
+            </a>
+          ) : (
+            <img
+              src={logo.image_url}
+              alt={logo.name}
+              class="h-8 w-auto flex-shrink-0 opacity-70 hover:opacity-100 transition-opacity"
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  )}
+
+  <div class="mx-auto max-w-[1200px] px-4 sm:px-6 py-12 md:py-16">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-12">
+      {/* Column 1: Chapter info + social */}
+      <div>
+        <h3 class="text-lg font-semibold text-white mb-3 font-heading">
+          {chapter.name}
+        </h3>
+        {footerDescription && (
+          <p class="text-sm text-white/70 mb-6 leading-relaxed">{footerDescription}</p>
+        )}
+        {socialLinks.length > 0 && (
+          <div class="flex items-center gap-3">
+            {socialLinks.map((link) => (
+              <a
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-white/60 hover:text-white hover:scale-110 transition-all p-1"
+                aria-label={`${chapter.name} on ${link.platform}`}
+              >
+                <SocialIcon platform={link.platform} />
+              </a>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Column 2: Quick links */}
+      <div>
+        <h3 class="text-xs uppercase tracking-widest text-white/50 mb-4 font-heading font-semibold">
+          Quick Links
+        </h3>
+        <nav aria-label="Footer navigation">
+          <ul class="space-y-2">
+            {navLinks.map((link) => (
+              <li>
+                <a
+                  href={link.href}
+                  class="text-sm text-white/70 hover:text-white hover:underline transition-colors"
+                >
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </div>
+
+      {/* Column 3: Contact + newsletter */}
+      <div>
+        <h3 class="text-xs uppercase tracking-widest text-white/50 mb-4 font-heading font-semibold">
+          Contact
+        </h3>
+        <ul class="space-y-3 text-sm">
+          {chapter.contact_email && (
+            <li class="flex items-start gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 flex-shrink-0 text-white/50"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+              <a href={`mailto:${chapter.contact_email}`} class="text-white/70 hover:text-white hover:underline">
+                {chapter.contact_email}
+              </a>
+            </li>
+          )}
+          {chapter.contact_phone && (
+            <li class="flex items-start gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 flex-shrink-0 text-white/50"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              <a href={`tel:${chapter.contact_phone}`} class="text-white/70 hover:text-white hover:underline">
+                {chapter.contact_phone}
+              </a>
+            </li>
+          )}
+          {chapter.contact_address && (
+            <li class="flex items-start gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 flex-shrink-0 text-white/50"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span class="text-white/70">{chapter.contact_address}</span>
+            </li>
+          )}
+        </ul>
+
+        {/* Newsletter */}
+        {newsletterEnabled && (
+          <div class="mt-6">
+            <h4 class="text-xs uppercase tracking-widest text-white/50 mb-2 font-heading font-semibold">
+              Newsletter
+            </h4>
+            <form id="newsletter-form" class="flex gap-2" method="POST" action="#">
+              <input
+                type="email"
+                name="email"
+                placeholder="Your email"
+                required
+                aria-label="Email for newsletter"
+                class="flex-1 px-3 py-2 text-sm rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-white/50"
+              />
+              <button
+                type="submit"
+                id="newsletter-submit"
+                class="px-4 py-2 text-sm font-medium rounded-lg bg-brand-accent text-warm-charcoal hover:opacity-90 transition-opacity disabled:opacity-50"
+              >
+                Subscribe
+              </button>
+            </form>
+            <p id="newsletter-msg" class="hidden mt-2 text-xs text-white/70"></p>
+            <script define:vars={{ supabaseUrl, chapterSlug }}>
+              const nForm = document.getElementById('newsletter-form');
+              const nBtn = document.getElementById('newsletter-submit');
+              const nMsg = document.getElementById('newsletter-msg');
+              if (nForm) {
+                nForm.addEventListener('submit', async (e) => {
+                  e.preventDefault();
+                  nBtn.disabled = true;
+                  nBtn.textContent = '…';
+                  const email = new FormData(nForm).get('email');
+                  try {
+                    const res = await fetch(supabaseUrl + '/functions/v1/newsletter-subscribe', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ chapter_slug: chapterSlug, email }),
+                    });
+                    const json = await res.json();
+                    nMsg.textContent = res.ok ? 'You\'re subscribed!' : (json.error || 'Something went wrong.');
+                    nMsg.classList.remove('hidden');
+                    if (res.ok) nForm.reset();
+                  } catch {
+                    nMsg.textContent = 'Network error. Please try again.';
+                    nMsg.classList.remove('hidden');
+                  }
+                  nBtn.disabled = false;
+                  nBtn.textContent = 'Subscribe';
+                });
+              }
+            </script>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+
+  {/* Copyright bar */}
+  <div class="border-t border-white/10">
+    <div class="mx-auto max-w-[1200px] px-4 sm:px-6 py-4">
+      <p class="text-xs text-white/50 text-center">{copyright}</p>
+    </div>
+  </div>
+</footer>

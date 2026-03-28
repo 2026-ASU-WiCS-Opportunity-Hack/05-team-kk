@@ -1,0 +1,53 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import TestimonialCard from "../../components/TestimonialCard.astro";
+import { getChapterData } from "../../lib/data";
+import { getBlock } from "../../lib/content";
+
+export async function getStaticPaths() {
+  const slug = import.meta.env.CHAPTER_SLUG;
+  const { chapter } = await getChapterData(slug);
+  return chapter.active_languages.map((lang: string) => ({
+    params: { locale: lang },
+  }));
+}
+
+const { locale } = Astro.params;
+const slug = import.meta.env.CHAPTER_SLUG;
+const { contentBlocks, testimonials } = await getChapterData(slug, locale);
+
+const title = getBlock(contentBlocks, "testimonials_title", "Testimonials");
+const description = getBlock(contentBlocks, "testimonials_description", "");
+---
+
+<BaseLayout title="Testimonials" locale={locale}>
+  {/* Hero Banner */}
+  <section class="bg-brand-primary-light py-16 md:py-20">
+    <div class="mx-auto max-w-[1200px] px-4 sm:px-6 text-center">
+      <h1 class="text-4xl md:text-5xl font-bold font-heading" style="color:var(--color-brand-primary)">
+        {title}
+      </h1>
+      {description && (
+        <p class="text-lg text-text-secondary mt-4 max-w-xl mx-auto">{description}</p>
+      )}
+    </div>
+  </section>
+
+  <section class="py-12 md:py-16">
+    <div class="mx-auto max-w-[1200px] px-4 sm:px-6">
+      {testimonials.length > 0 ? (
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+          {testimonials.map((t) => (
+            <TestimonialCard testimonial={t} />
+          ))}
+        </div>
+      ) : (
+        <div class="text-center py-16">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mx-auto text-text-muted mb-4"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+          <h3 class="text-lg font-semibold font-heading mb-1">Testimonials coming soon</h3>
+          <p class="text-sm text-text-secondary">Check back soon for stories from our community.</p>
+        </div>
+      )}
+    </div>
+  </section>
+</BaseLayout>

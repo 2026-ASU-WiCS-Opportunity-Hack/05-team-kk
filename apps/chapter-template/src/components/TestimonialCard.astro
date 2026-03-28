@@ -1,0 +1,44 @@
+---
+import type { Tables } from "@repo/types";
+import { getInitials } from "../lib/utils";
+
+interface Props {
+  testimonial: Tables<"testimonials">;
+}
+
+const { testimonial } = Astro.props;
+const initials = getInitials(testimonial.author_name);
+---
+
+<article class="bg-surface rounded-xl border border-border p-6 relative">
+  {/* Decorative quote mark */}
+  <div class="absolute top-4 right-5 text-5xl leading-none font-serif text-brand-accent/20 select-none" aria-hidden="true">
+    &ldquo;
+  </div>
+
+  {/* Quote */}
+  <blockquote class="text-text-primary leading-relaxed mb-5 pr-8">
+    {testimonial.quote}
+  </blockquote>
+
+  {/* Author */}
+  <div class="flex items-center gap-3">
+    {testimonial.author_photo_url ? (
+      <img
+        src={testimonial.author_photo_url}
+        alt={testimonial.author_name}
+        class="w-10 h-10 rounded-full object-cover"
+      />
+    ) : (
+      <div class="w-10 h-10 rounded-full bg-brand-primary-light text-brand-primary flex items-center justify-center text-sm font-bold font-heading">
+        {initials}
+      </div>
+    )}
+    <div>
+      <p class="text-sm font-semibold text-text-primary">{testimonial.author_name}</p>
+      {testimonial.author_title && (
+        <p class="text-xs text-text-secondary">{testimonial.author_title}</p>
+      )}
+    </div>
+  </div>
+</article>
