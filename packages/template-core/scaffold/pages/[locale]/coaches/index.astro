@@ -26,15 +26,24 @@ const languages = [...new Set(coaches.flatMap((c) => c.languages))].sort();
 ---
 
 <BaseLayout title="Coaches" locale={locale}>
-  {/* Hero Banner */}
-  <section class="bg-brand-primary-light py-16 md:py-20">
-    <div class="mx-auto max-w-[1200px] px-4 sm:px-6 text-center">
-      <h1 class="text-4xl md:text-5xl font-bold font-heading" style="color:var(--color-brand-primary)">
-        {title}
-      </h1>
-      {description && (
-        <p class="text-lg text-text-secondary mt-4 max-w-xl mx-auto">{description}</p>
-      )}
+  {/* Page Hero */}
+  <section class="relative overflow-hidden py-16 md:py-24">
+    <div class="absolute inset-0" style="background: linear-gradient(135deg, var(--color-brand-primary-light) 0%, var(--color-warm-ivory) 60%, var(--color-brand-accent-light) 100%)"></div>
+    <div class="relative z-10 mx-auto max-w-[1200px] px-4 sm:px-6">
+      <div class="max-w-3xl">
+        <p class="overline text-brand-accent mb-3">Our Team</p>
+        <h1 class="text-4xl md:text-5xl lg:text-[3.5rem] font-bold font-heading tracking-tight" style="color:var(--color-brand-primary)">
+          {title}
+        </h1>
+        {description && (
+          <p class="text-lg text-text-secondary mt-4 max-w-xl">{description}</p>
+        )}
+      </div>
+    </div>
+    <div class="absolute bottom-0 left-0 right-0">
+      <svg viewBox="0 0 1440 48" preserveAspectRatio="none" class="w-full h-8 md:h-12" fill="var(--color-warm-ivory)">
+        <path d="M0,24 C360,48 1080,0 1440,28 L1440,48 L0,48 Z"/>
+      </svg>
     </div>
   </section>
 
@@ -216,7 +225,7 @@ const languages = [...new Set(coaches.flatMap((c) => c.languages))].sort();
           </div>
 
           {/* Coach Grid */}
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-10" id="coach-grid">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8" id="coach-grid">
             {coaches.map((coach) => (
               <CoachCard coach={coach} locale={locale} />
             ))}
@@ -324,10 +333,12 @@ const languages = [...new Set(coaches.flatMap((c) => c.languages))].sort();
           </script>
         </>
       ) : (
-        <div class="text-center py-16">
-          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mx-auto text-text-muted mb-4"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          <h3 class="text-lg font-semibold font-heading mb-1">No coaches listed yet</h3>
-          <p class="text-sm text-text-secondary">Check back soon as our team grows.</p>
+        <div class="text-center py-20">
+          <div class="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center" style="background:var(--color-brand-primary-light)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-brand-primary"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold font-heading mb-2">No coaches listed yet</h3>
+          <p class="text-sm text-text-secondary max-w-sm mx-auto">Check back soon as our team grows.</p>
         </div>
       )}
     </div>

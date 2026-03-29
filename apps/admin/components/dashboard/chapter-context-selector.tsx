@@ -12,6 +12,7 @@ import {
 } from "@repo/ui/dropdown-menu";
 import { Button } from "@repo/ui/button";
 import { ChevronDown, Check, Globe } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 const STATUS_DOT: Record<string, string> = {
   active: "bg-green-500",
@@ -20,6 +21,7 @@ const STATUS_DOT: Record<string, string> = {
 };
 
 export function ChapterContextSelector() {
+  const t = useTranslations("ui");
   const router = useRouter();
   const { chapters, selectedChapterId, selectedChapter, setSelectedChapterId } =
     useChapter();
@@ -32,7 +34,7 @@ export function ChapterContextSelector() {
     ? selectedChapter.name.length > 24
       ? selectedChapter.name.slice(0, 24) + "…"
       : selectedChapter.name
-    : "Global";
+    : t("labels.global");
 
   return (
     <DropdownMenu>
@@ -60,8 +62,8 @@ export function ChapterContextSelector() {
               className="gap-3"
             >
               <Globe className="h-4 w-4 text-muted-foreground" />
-              <div className="flex-1 min-w-0">
-                <span className="font-medium">Global</span>
+                <div className="flex-1 min-w-0">
+                <span className="font-medium">{t("labels.global")}</span>
               </div>
               {selectedChapterId === null && (
                 <Check className="h-4 w-4 text-primary" />

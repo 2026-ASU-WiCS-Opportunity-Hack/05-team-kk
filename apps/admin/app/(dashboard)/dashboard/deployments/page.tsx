@@ -1,9 +1,12 @@
 import { getAuthUser, isSuperAdmin, getUserRoleForChapter } from "@/lib/auth";
 import { createClient } from "@repo/supabase/server";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { DeploymentsClient } from "./deployments-client";
 
 export default async function DeploymentsPage() {
+  const t = await getTranslations("deployments");
+  const tui = await getTranslations("ui.pageState");
   const user = await getAuthUser();
   if (!user) redirect("/login");
 
@@ -19,8 +22,10 @@ export default async function DeploymentsPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Deployments</h1>
-          <p className="text-muted-foreground">Select a chapter to manage deployments.</p>
+          <h1 className="text-3xl font-semibold tracking-tight">{t("title")}</h1>
+          <p className="text-muted-foreground">
+            {tui("selectChapterToManage", { subject: t("title").toLowerCase() })}
+          </p>
         </div>
       </div>
     );

@@ -14,10 +14,13 @@ import {
 import { Input } from "@repo/ui/input";
 import { Label } from "@repo/ui/label";
 import { toast } from "sonner";
-import { Loader2, Building2, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function LoginPage() {
   const router = useRouter();
+  const t = useTranslations("auth");
+  const tui = useTranslations("ui");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -50,14 +53,25 @@ export default function LoginPage() {
     <Card className="w-full max-w-[420px]">
       <CardHeader className="text-center pb-2">
         <div className="flex justify-center mb-4">
-          <div className="flex items-center gap-2">
-            <Building2 className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold tracking-tight">WIAL Admin</span>
+          <div className="flex flex-col items-center">
+            <div className="rounded-xl bg-white px-3 py-2 shadow-sm ring-1 ring-black/5">
+              <picture>
+                <source srcSet="/brand/logo.webp" type="image/webp" />
+                <img
+                  src="/brand/logo.png"
+                  alt="WIAL Admin"
+                  className="h-12 w-auto object-contain"
+                  loading="eager"
+                  decoding="async"
+                />
+              </picture>
+            </div>
+            <span className="mt-2 text-lg font-bold tracking-tight">WIAL Admin</span>
           </div>
         </div>
-        <CardTitle className="text-2xl">Sign in to your account</CardTitle>
+        <CardTitle className="text-2xl">{t("signInTitle")}</CardTitle>
         <CardDescription>
-          Manage your chapter, coaches, and content
+          {t("signInSubtitle")}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -66,12 +80,12 @@ export default function LoginPage() {
             className={`flex flex-col gap-4 transition-opacity ${loading ? "opacity-60 pointer-events-none" : ""}`}
           >
             <div className="flex flex-col gap-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{tui("fields.email")}</Label>
               <Input
                 ref={emailRef}
                 id="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder={tui("fields.emailPlaceholder")}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -79,7 +93,7 @@ export default function LoginPage() {
               />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{tui("fields.password")}</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -93,7 +107,7 @@ export default function LoginPage() {
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-label={showPassword ? tui("actions.hidePassword") : tui("actions.showPassword")}
                   tabIndex={-1}
                 >
                   {showPassword ? (
@@ -109,11 +123,11 @@ export default function LoginPage() {
             {loading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              "Sign In"
+              t("signIn")
             )}
           </Button>
           <p className="text-center text-sm text-muted-foreground">
-            Received an invitation? Check your email for the signup link.
+            {t("invitationPrompt")}
           </p>
         </form>
       </CardContent>

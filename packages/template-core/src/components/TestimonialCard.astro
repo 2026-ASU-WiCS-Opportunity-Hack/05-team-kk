@@ -4,40 +4,56 @@ import { getInitials } from "../lib/utils";
 
 interface Props {
   testimonial: Tables<"testimonials">;
+  featured?: boolean;
 }
 
-const { testimonial } = Astro.props;
+const { testimonial, featured = false } = Astro.props;
 const initials = getInitials(testimonial.author_name);
 ---
 
-<article class="bg-surface rounded-xl border border-border p-6 relative">
-  {/* Decorative quote mark */}
-  <div class="absolute top-4 right-5 text-5xl leading-none font-serif text-brand-accent/20 select-none" aria-hidden="true">
+<article class:list={[
+  "relative group transition-all duration-300",
+  featured
+    ? "bg-surface rounded-2xl border border-border p-8 md:p-10 hover:shadow-lg"
+    : "bg-surface rounded-2xl border border-border p-6 md:p-8 hover:shadow-md",
+]}>
+  {/* Accent top bar */}
+  <div class="absolute top-0 left-6 right-6 h-[3px] rounded-b-full" style="background: linear-gradient(90deg, var(--color-brand-primary), var(--color-brand-accent))"></div>
+
+  {/* Large decorative quote */}
+  <div class:list={[
+    "font-heading leading-none select-none mb-4",
+    featured ? "text-7xl" : "text-5xl",
+  ]} style="color:var(--color-brand-accent); opacity:0.25" aria-hidden="true">
     &ldquo;
   </div>
 
-  {/* Quote */}
-  <blockquote class="text-text-primary leading-relaxed mb-5 pr-8">
+  {/* Quote text */}
+  <blockquote class:list={[
+    "text-text-primary leading-relaxed mb-6",
+    featured ? "text-lg md:text-xl" : "text-base",
+  ]}>
     {testimonial.quote}
   </blockquote>
 
   {/* Author */}
-  <div class="flex items-center gap-3">
+  <div class="flex items-center gap-3 pt-4 border-t border-border-subtle">
     {testimonial.author_photo_url ? (
       <img
         src={testimonial.author_photo_url}
         alt={testimonial.author_name}
-        class="w-10 h-10 rounded-full object-cover"
+        class="w-11 h-11 rounded-full object-cover ring-2 ring-surface"
+        loading="lazy"
       />
     ) : (
-      <div class="w-10 h-10 rounded-full bg-brand-primary-light text-brand-primary flex items-center justify-center text-sm font-bold font-heading">
+      <div class="w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold text-white font-heading" style="background:var(--color-brand-primary)">
         {initials}
       </div>
     )}
     <div>
-      <p class="text-sm font-semibold text-text-primary">{testimonial.author_name}</p>
+      <p class="text-sm font-semibold text-text-primary font-heading">{testimonial.author_name}</p>
       {testimonial.author_title && (
-        <p class="text-xs text-text-secondary">{testimonial.author_title}</p>
+        <p class="text-xs text-text-muted">{testimonial.author_title}</p>
       )}
     </div>
   </div>

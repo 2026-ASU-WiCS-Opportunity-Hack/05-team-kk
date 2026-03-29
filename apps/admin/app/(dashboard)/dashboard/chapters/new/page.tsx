@@ -9,6 +9,7 @@ import { Input } from "@repo/ui/input";
 import { Label } from "@repo/ui/label";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 function slugify(text: string): string {
   return text
@@ -19,6 +20,9 @@ function slugify(text: string): string {
 
 export default function CreateChapterPage() {
   const router = useRouter();
+  const t = useTranslations("ui.chapterForm");
+  const tc = useTranslations("common");
+  const tChapters = useTranslations("chapters");
   const [loading, setLoading] = useState(false);
 
   const [name, setName] = useState("");
@@ -27,7 +31,7 @@ export default function CreateChapterPage() {
   const [primaryColor, setPrimaryColor] = useState("#1a365d");
   const [secondaryColor, setSecondaryColor] = useState("#2b6cb0");
   const [accentColor, setAccentColor] = useState("#ed8936");
-  const [font, setFont] = useState("Inter");
+  const [font, setFont] = useState("Lexend");
   const [contactEmail, setContactEmail] = useState("");
   const [contactPhone, setContactPhone] = useState("");
   const [contactAddress, setContactAddress] = useState("");
@@ -66,7 +70,7 @@ export default function CreateChapterPage() {
       .single();
 
     if (error || !chapter) {
-      toast.error(error?.message ?? "Failed to create chapter");
+      toast.error(error?.message ?? t("errors.createChapterFailed"));
       setLoading(false);
       return;
     }
@@ -91,12 +95,12 @@ export default function CreateChapterPage() {
         const data = await provRes.json().catch(() => ({}));
         console.warn("Provisioning warning:", data);
         toast.warning(
-          "Chapter created but Cloudflare provisioning failed. You can retry from the edit page."
+          t("warnings.provisioningFailed")
         );
       }
     } catch {
       toast.warning(
-        "Chapter created but Cloudflare provisioning failed. You can retry from the edit page."
+        t("warnings.provisioningFailed")
       );
     }
 
@@ -134,7 +138,7 @@ export default function CreateChapterPage() {
       }
     }
 
-    toast.success(`Chapter "${name}" created successfully.`);
+    toast.success(t("messages.chapterCreated", { name }));
     router.push("/dashboard/chapters");
     router.refresh();
   }
@@ -143,31 +147,31 @@ export default function CreateChapterPage() {
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">
-          Create New Chapter
+          {t("titles.createChapter")}
         </h1>
         <p className="text-muted-foreground">
-          Set up a new WIAL chapter with branding and contact info.
+          {t("intro")}
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Basic Information</CardTitle>
+            <CardTitle>{t("sections.basicInfo")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Chapter Name *</Label>
+              <Label htmlFor="name">{t("fields.chapterNameRequired")}</Label>
               <Input
                 id="name"
                 value={name}
                 onChange={(e) => handleNameChange(e.target.value)}
-                placeholder="WIAL Nigeria"
+                placeholder={t("fields.chapterNamePlaceholder")}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="slug">Slug</Label>
+              <Label htmlFor="slug">{t("fields.slug")}</Label>
               <Input
                 id="slug"
                 value={slug}
@@ -178,7 +182,7 @@ export default function CreateChapterPage() {
               </p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="language">Default Language</Label>
+              <Label htmlFor="language">{t("fields.defaultLanguage")}</Label>
               <Input
                 id="language"
                 value={defaultLanguage}
@@ -191,12 +195,12 @@ export default function CreateChapterPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Branding</CardTitle>
+            <CardTitle>{t("sections.branding")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="primaryColor">Primary Color</Label>
+                <Label htmlFor="primaryColor">{t("fields.primaryColor")}</Label>
                 <div className="flex gap-2">
                   <input
                     type="color"
@@ -211,7 +215,7 @@ export default function CreateChapterPage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="secondaryColor">Secondary Color</Label>
+                <Label htmlFor="secondaryColor">{t("fields.secondaryColor")}</Label>
                 <div className="flex gap-2">
                   <input
                     type="color"
@@ -226,7 +230,7 @@ export default function CreateChapterPage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="accentColor">Accent Color</Label>
+                <Label htmlFor="accentColor">{t("fields.accentColor")}</Label>
                 <div className="flex gap-2">
                   <input
                     type="color"
@@ -242,12 +246,12 @@ export default function CreateChapterPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="font">Font</Label>
+              <Label htmlFor="font">{t("fields.font")}</Label>
               <Input
                 id="font"
                 value={font}
                 onChange={(e) => setFont(e.target.value)}
-                placeholder="Inter"
+                placeholder="Lexend"
               />
             </div>
           </CardContent>
@@ -255,11 +259,11 @@ export default function CreateChapterPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Contact Information</CardTitle>
+            <CardTitle>{t("sections.contactInfo")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="contactEmail">Email</Label>
+              <Label htmlFor="contactEmail">{t("fields.contactEmail")}</Label>
               <Input
                 id="contactEmail"
                 type="email"
@@ -268,7 +272,7 @@ export default function CreateChapterPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="contactPhone">Phone</Label>
+              <Label htmlFor="contactPhone">{t("fields.contactPhone")}</Label>
               <Input
                 id="contactPhone"
                 value={contactPhone}
@@ -276,7 +280,7 @@ export default function CreateChapterPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="contactAddress">Address</Label>
+              <Label htmlFor="contactAddress">{t("fields.contactAddress")}</Label>
               <Input
                 id="contactAddress"
                 value={contactAddress}
@@ -288,20 +292,20 @@ export default function CreateChapterPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Chapter Lead</CardTitle>
+            <CardTitle>{t("sections.chapterLead")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="leadEmail">Chapter Lead Email</Label>
+              <Label htmlFor="leadEmail">{t("fields.chapterLeadEmail")}</Label>
               <Input
                 id="leadEmail"
                 type="email"
                 value={leadEmail}
                 onChange={(e) => setLeadEmail(e.target.value)}
-                placeholder="lead@example.com"
+                placeholder={t("fields.chapterLeadEmailPlaceholder")}
               />
               <p className="text-xs text-muted-foreground">
-                An invitation will be sent to this email.
+                {t("fields.chapterLeadHint")}
               </p>
             </div>
           </CardContent>
@@ -313,13 +317,13 @@ export default function CreateChapterPage() {
             variant="ghost"
             onClick={() => router.back()}
           >
-            Cancel
+            {tc("cancel")}
           </Button>
           <Button type="submit" disabled={loading}>
             {loading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : null}
-            Create Chapter
+            {tChapters("createNew")}
           </Button>
         </div>
       </form>

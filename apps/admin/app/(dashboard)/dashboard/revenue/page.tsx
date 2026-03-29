@@ -1,5 +1,6 @@
 import { getAuthUser, isSuperAdmin } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import {
   Card,
   CardContent,
@@ -34,6 +35,8 @@ function formatCurrency(cents: number) {
 }
 
 export default async function RevenuePage() {
+  const t = await getTranslations("nav");
+  const tui = await getTranslations("ui.revenue");
   const user = await getAuthUser();
   if (!user) redirect("/login");
 
@@ -46,9 +49,9 @@ export default async function RevenuePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight">Revenue</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">{t("revenue")}</h1>
         <p className="text-muted-foreground">
-          Global payment overview across all chapters.
+          {tui("description")}
         </p>
       </div>
 
@@ -56,9 +59,9 @@ export default async function RevenuePage() {
       <div className="flex items-center gap-3 rounded-lg border border-info/30 bg-info/5 px-4 py-3">
         <Info className="h-5 w-5 text-info shrink-0" />
         <div>
-          <p className="text-sm font-medium">Coming Soon</p>
+          <p className="text-sm font-medium">{tui("comingSoonTitle")}</p>
           <p className="text-sm text-muted-foreground">
-            Global revenue tracking and reporting is under development. The data below is sample data for preview purposes.
+            {tui("comingSoonDescription")}
           </p>
         </div>
       </div>
@@ -67,32 +70,32 @@ export default async function RevenuePage() {
       <div className="grid gap-4 sm:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{tui("cards.totalRevenue")}</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{formatCurrency(totalRevenue)}</p>
-            <p className="text-xs text-muted-foreground mt-1">Across {MOCK_CHAPTER_REVENUE.length} chapters</p>
+            <p className="text-xs text-muted-foreground mt-1">{tui("cards.acrossChapters", { count: MOCK_CHAPTER_REVENUE.length })}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">This Month</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{tui("cards.thisMonth")}</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{formatCurrency(monthlyRevenue)}</p>
-            <p className="text-xs text-muted-foreground mt-1">March 2026</p>
+            <p className="text-xs text-muted-foreground mt-1">{tui("cards.monthMarch2026")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Active Coaches</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{tui("cards.activeCoaches")}</CardTitle>
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{totalCoaches}</p>
-            <p className="text-xs text-muted-foreground mt-1">Generating revenue</p>
+            <p className="text-xs text-muted-foreground mt-1">{tui("cards.generatingRevenue")}</p>
           </CardContent>
         </Card>
       </div>
@@ -102,11 +105,11 @@ export default async function RevenuePage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Chapter</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Coaches</TableHead>
-              <TableHead className="text-right">This Month</TableHead>
-              <TableHead className="text-right">Total Revenue</TableHead>
+              <TableHead>{tui("table.chapter")}</TableHead>
+              <TableHead>{tui("table.status")}</TableHead>
+              <TableHead>{tui("table.coaches")}</TableHead>
+              <TableHead className="text-right">{tui("table.thisMonth")}</TableHead>
+              <TableHead className="text-right">{tui("table.totalRevenue")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -114,7 +117,7 @@ export default async function RevenuePage() {
               <TableRow key={c.chapter}>
                 <TableCell className="font-medium">{c.chapter}</TableCell>
                 <TableCell>
-                  <Badge variant="default" className="capitalize">{c.status}</Badge>
+                  <Badge variant="default" className="capitalize">{tui(`status.${c.status}`)}</Badge>
                 </TableCell>
                 <TableCell>{c.coaches}</TableCell>
                 <TableCell className="text-right">{formatCurrency(c.thisMonth)}</TableCell>

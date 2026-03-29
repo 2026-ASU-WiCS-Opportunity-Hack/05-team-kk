@@ -7,29 +7,30 @@ import { Card, CardContent } from "@repo/ui/card";
 import { Badge } from "@repo/ui/badge";
 import { Plus, FileText, Home, Info, BookOpen, Users, Quote, Phone, UserPlus, Navigation, Footprints, Calendar, Library } from "lucide-react";
 import { cookies } from "next/headers";
+import { getTranslations } from "next-intl/server";
 
-const pageGroups: Record<string, { label: string; icon: React.ElementType }> = {
-  hero: { label: "Landing Page", icon: Home },
-  about: { label: "About Page", icon: Info },
-  al: { label: "Action Learning Page", icon: BookOpen },
-  cert: { label: "Certification", icon: BookOpen },
-  coaches: { label: "Coach Directory", icon: Users },
-  testimonials: { label: "Testimonials Page", icon: Quote },
-  events: { label: "Events Page", icon: Calendar },
-  resources: { label: "Resources Page", icon: Library },
-  contact: { label: "Contact Page", icon: Phone },
-  join: { label: "Membership Page", icon: UserPlus },
-  nav: { label: "Header Navigation", icon: Navigation },
-  footer: { label: "Footer", icon: Footprints },
+const pageGroups: Record<string, { key: string; icon: React.ElementType }> = {
+  hero: { key: "landingPage", icon: Home },
+  about: { key: "aboutPage", icon: Info },
+  al: { key: "actionLearningPage", icon: BookOpen },
+  cert: { key: "certification", icon: BookOpen },
+  coaches: { key: "coachDirectory", icon: Users },
+  testimonials: { key: "testimonialsPage", icon: Quote },
+  events: { key: "eventsPage", icon: Calendar },
+  resources: { key: "resourcesPage", icon: Library },
+  contact: { key: "contactPage", icon: Phone },
+  join: { key: "membershipPage", icon: UserPlus },
+  nav: { key: "headerNavigation", icon: Navigation },
+  footer: { key: "footer", icon: Footprints },
 };
 
 function getPageGroup(blockKey: string): string {
   const prefix = blockKey.split("_")[0]!;
-  return pageGroups[prefix]?.label ?? "Other";
+  return pageGroups[prefix]?.key ?? "other";
 }
 
 function getPageIcon(group: string): React.ElementType {
-  const entry = Object.values(pageGroups).find((v) => v.label === group);
+  const entry = Object.values(pageGroups).find((v) => v.key === group);
   return entry?.icon ?? FileText;
 }
 
@@ -44,6 +45,9 @@ export default async function ContentPage({
 }: {
   searchParams: Promise<{ locale?: string }>;
 }) {
+  const t = await getTranslations("content");
+  const tc = await getTranslations("common");
+  const tui = await getTranslations("ui.contentPage");
   const { locale: selectedLocale } = await searchParams;
   const user = await getAuthUser();
   if (!user) redirect("/login");
@@ -58,9 +62,9 @@ export default async function ContentPage({
   if (!chapterId) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-semibold tracking-tight">Content</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">{t("title")}</h1>
         <p className="text-muted-foreground">
-          Select a chapter to manage content.
+          {tui("selectChapter")}
         </p>
       </div>
     );
@@ -139,15 +143,15 @@ export default async function ContentPage({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Content</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">{t("title")}</h1>
           <p className="text-muted-foreground">
-            Manage content blocks for your chapter website.
+            {tui("description")}
           </p>
         </div>
         <Button asChild>
           <Link href="/dashboard/content/new">
             <Plus className="mr-2 h-4 w-4" />
-            New Block
+            {t("newBlock")}
           </Link>
         </Button>
       </div>
@@ -172,7 +176,7 @@ export default async function ContentPage({
                 {lang.toUpperCase()}
                 {missing > 0 && lang !== chapter?.default_language && (
                   <Badge variant="secondary" className="ml-2 text-xs">
-                    {missing} untranslated
+                    {tui("untranslatedCount", { count: missing })}
                   </Badge>
                 )}
               </Link>
@@ -184,15 +188,14 @@ export default async function ContentPage({
       {allGroups.size === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
           <FileText className="h-12 w-12 text-muted-foreground" />
-          <h3 className="mt-4 text-lg font-semibold">No content blocks yet</h3>
+          <h3 className="mt-4 text-lg font-semibold">{tui("empty.noBlocks")}</h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            Create your first content block to start building your chapter
-            website.
+            {tui("empty.noBlocksDesc")}
           </p>
           <Button asChild className="mt-4">
             <Link href="/dashboard/content/new">
               <Plus className="mr-2 h-4 w-4" />
-              New Block
+              {t("newBlock")}
             </Link>
           </Button>
         </div>
@@ -205,7 +208,7 @@ export default async function ContentPage({
               {(() => { const Icon = getPageIcon(group); return (
                 <h2 className="text-lg font-semibold flex items-center gap-2">
                   <Icon className="h-5 w-5 text-muted-foreground" />
-                  {group}
+                  {tui.has(`groups.${group}`) ? tui(`groups.${group}`) : group}
                 </h2>
               ); })()}
               <div className="grid gap-3 sm:grid-cols-2">
@@ -255,12 +258,12 @@ export default async function ContentPage({
                             {humanizeKey(block.block_key)}
                           </p>
                           <p className="text-sm text-muted-foreground italic">
-                            Not yet created for {currentLocale.toUpperCase()}
+                            {tui("notCreatedForLocale", { locale: currentLocale.toUpperCase() })}
                           </p>
                         </div>
                         <Button variant="ghost" size="sm" asChild>
                           <Link href={`/dashboard/content/new?key=${block.block_key}&type=${block.content_type}&locale=${currentLocale}`}>
-                            Create
+                            {tc("create")}
                           </Link>
                         </Button>
                       </div>

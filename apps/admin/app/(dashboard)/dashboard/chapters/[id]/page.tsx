@@ -1,6 +1,7 @@
 import { getAuthUser, isSuperAdmin } from "@/lib/auth";
 import { createClient } from "@repo/supabase/server";
 import { redirect, notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { ChapterEditForm } from "./chapter-edit-form";
 
 export default async function EditChapterPage({
@@ -8,6 +9,7 @@ export default async function EditChapterPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const t = await getTranslations("ui.chapterForm");
   const { id } = await params;
   const user = await getAuthUser();
   if (!user || !isSuperAdmin(user.roles)) redirect("/dashboard");
@@ -25,10 +27,10 @@ export default async function EditChapterPage({
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">
-          Edit {chapter.name}
+          {t("titles.editChapter", { name: chapter.name })}
         </h1>
         <p className="text-muted-foreground">
-          Update chapter settings, branding, and contact info.
+          {t("editIntro")}
         </p>
       </div>
       <ChapterEditForm chapter={chapter} />

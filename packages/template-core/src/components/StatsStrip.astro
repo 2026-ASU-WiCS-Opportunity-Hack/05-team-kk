@@ -9,26 +9,36 @@ interface Props {
 }
 
 const { stats } = Astro.props;
+
+const accentColors = [
+  "var(--color-brand-primary)",
+  "var(--color-brand-accent)",
+  "var(--color-brand-secondary)",
+  "var(--color-cert-malc)",
+];
 ---
 
 {stats.length > 0 && (
-  <section class="bg-surface-muted border-y border-border-subtle" aria-label="Statistics">
-    <div class="mx-auto max-w-[1200px] px-4 sm:px-6 py-10">
-      <div class="flex flex-wrap justify-center gap-x-16 gap-y-8">
-        {stats.map((stat) => {
+  <section class="py-14 md:py-16 relative" aria-label="Statistics">
+    <div class="mx-auto max-w-[1200px] px-4 sm:px-6">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+        {stats.map((stat, i) => {
           const numericMatch = stat.value.match(/^(\d+)/);
           const numericValue = numericMatch ? parseInt(numericMatch[1]) : null;
           const suffix = numericMatch ? stat.value.slice(numericMatch[1].length) : "";
+          const color = accentColors[i % accentColors.length];
           return (
-            <div class="text-center">
-              <p class="text-3xl md:text-4xl font-bold font-heading text-brand-primary">
+            <div class="relative pl-5 py-2">
+              {/* Colored left accent bar */}
+              <div class="absolute left-0 top-0 bottom-0 w-1 rounded-full" style={`background:${color}`}></div>
+              <p class="text-3xl md:text-4xl lg:text-5xl font-bold font-heading tracking-tight" style={`color:${color}`}>
                 {numericValue !== null ? (
                   <span class="stat-counter" data-target={numericValue} data-suffix={suffix}>0{suffix}</span>
                 ) : (
                   stat.value
                 )}
               </p>
-              <p class="text-sm text-text-secondary mt-1">{stat.label}</p>
+              <p class="text-sm text-text-secondary mt-1.5 font-medium">{stat.label}</p>
             </div>
           );
         })}

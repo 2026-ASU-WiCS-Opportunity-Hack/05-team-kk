@@ -37,6 +37,7 @@ export function ClientOrgsClient({
   const [loading, setLoading] = useState(false);
   const t = useTranslations("clients");
   const tc = useTranslations("common");
+  const tui = useTranslations("ui.clients");
 
   const [name, setName] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
@@ -86,14 +87,14 @@ export function ClientOrgsClient({
         .update(payload)
         .eq("id", editing.id);
       if (error) toast.error(error.message);
-      else toast.success("Client updated.");
+      else toast.success(tui("messages.updated"));
     } else {
       const { error } = await supabase.from("client_organizations").insert({
         ...payload,
         chapter_id: chapterId,
       });
       if (error) toast.error(error.message);
-      else toast.success("Client added.");
+      else toast.success(tui("messages.added"));
     }
 
     setDialogOpen(false);
@@ -109,7 +110,7 @@ export function ClientOrgsClient({
       .eq("id", id);
     if (error) toast.error(error.message);
     else {
-      toast.success("Client removed.");
+      toast.success(tui("messages.removed"));
       router.refresh();
     }
   }
@@ -184,9 +185,9 @@ export function ClientOrgsClient({
                         href={c.website_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs text-primary hover:underline inline-flex items-center gap-0.5"
-                      >
-                        {tc("websiteUrl") || "Website"} <ExternalLink className="h-3 w-3" />
+                      className="text-xs text-primary hover:underline inline-flex items-center gap-0.5"
+                    >
+                        {tui("labels.website")} <ExternalLink className="h-3 w-3" />
                       </a>
                     )}
                   </div>
@@ -254,7 +255,7 @@ export function ClientOrgsClient({
               {logoUrl && (
                 <img
                   src={logoUrl}
-                  alt="Logo preview"
+                  alt={tui("labels.logoPreviewAlt")}
                   className="h-20 w-20 rounded-md object-contain border"
                 />
               )}
@@ -268,7 +269,7 @@ export function ClientOrgsClient({
               />
             </div>
             <div className="space-y-2">
-              <Label>{tc("description") || t("description")}</Label>
+              <Label>{t("description")}</Label>
               <Textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}

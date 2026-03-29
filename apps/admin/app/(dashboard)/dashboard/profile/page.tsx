@@ -1,9 +1,12 @@
 import { getAuthUser } from "@/lib/auth";
 import { createClient } from "@repo/supabase/server";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { CoachEditForm } from "../coaches/[id]/coach-edit-form";
 
 export default async function ProfilePage() {
+  const tProfile = await getTranslations("profile");
+  const tNav = await getTranslations("nav");
   const user = await getAuthUser();
   if (!user) redirect("/login");
 
@@ -17,9 +20,9 @@ export default async function ProfilePage() {
   if (!coach) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-semibold tracking-tight">My Profile</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">{tNav("myProfile")}</h1>
         <p className="text-muted-foreground">
-          No coach profile is linked to your account.
+          {tProfile("noProfileLinked")}
         </p>
       </div>
     );
@@ -28,9 +31,9 @@ export default async function ProfilePage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight">My Profile</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">{tNav("myProfile")}</h1>
         <p className="text-muted-foreground">
-          Edit your coach profile information.
+          {tProfile("editProfileInfo")}
         </p>
       </div>
       <CoachEditForm coach={coach} canEdit={true} isRestricted={true} />

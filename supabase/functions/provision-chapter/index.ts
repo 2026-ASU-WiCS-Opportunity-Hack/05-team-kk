@@ -29,6 +29,127 @@ async function githubApi(
   });
 }
 
+type CloudflareEnvelope<T = unknown> = {
+  success?: boolean;
+  result?: T;
+  errors?: Array<{ message?: string }>;
+};
+
+async function cloudflareApi<T = unknown>(
+  token: string,
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<{ response: Response; data: CloudflareEnvelope<T> | null }> {
+  const url = endpoint.startsWith("https://")
+    ? endpoint
+    : `https://api.cloudflare.com/client/v4${endpoint}`;
+
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      ...(options.headers as Record<string, string> | undefined),
+    },
+  });
+
+  const data = (await response.json().catch(() => null)) as
+    | CloudflareEnvelope<T>
+    | null;
+
+  return { response, data };
+}
+
+async function resolveZoneIdForDomain(
+  token: string,
+  fqdn: string,
+  explicitZoneId?: string
+): Promise<string | null> {
+  if (explicitZoneId) return explicitZoneId;
+
+  const labels = fqdn.split(".");
+  for (let i = 0; i <= labels.length - 2; i++) {
+    const candidateZone = labels.slice(i).join(".");
+    const { response, data } = await cloudflareApi<Array<{ id: string }>>(
+      token,
+      `/zones?name=${encodeURIComponent(candidateZone)}&status=active&per_page=1`
+    );
+
+    if (
+      response.ok &&
+      data?.success &&
+      Array.isArray(data.result) &&
+      data.result.length > 0
+    ) {
+      return data.result[0].id;
+    }
+  }
+
+  return null;
+}
+
+async function ensureCnameRecord(
+  token: string,
+  zoneId: string,
+  recordName: string,
+  recordContent: string
+): Promise<string | null> {
+  const { response: listRes, data: listData } = await cloudflareApi<
+    Array<{ id: string; content: string }>
+  >(
+    token,
+    `/zones/${zoneId}/dns_records?type=CNAME&name=${encodeURIComponent(recordName)}&per_page=1`
+  );
+
+  if (!listRes.ok || !listData?.success || !Array.isArray(listData.result)) {
+    return "Unable to read DNS records for CNAME verification";
+  }
+
+  const existing = listData.result[0];
+  if (existing?.content === recordContent) {
+    return null;
+  }
+
+  const payload = {
+    type: "CNAME",
+    name: recordName,
+    content: recordContent,
+    proxied: true,
+    ttl: 1,
+  };
+
+  if (existing) {
+    const { response: updateRes, data: updateData } = await cloudflareApi(
+      token,
+      `/zones/${zoneId}/dns_records/${existing.id}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      }
+    );
+
+    if (!updateRes.ok || !updateData?.success) {
+      return `Failed to update CNAME record: ${updateData?.errors?.[0]?.message || updateRes.status}`;
+    }
+    return null;
+  }
+
+  const { response: createRes, data: createData } = await cloudflareApi(
+    token,
+    `/zones/${zoneId}/dns_records`,
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }
+  );
+
+  if (!createRes.ok || !createData?.success) {
+    return `Failed to create CNAME record: ${createData?.errors?.[0]?.message || createRes.status}`;
+  }
+
+  return null;
+}
+
 // ---------------------------------------------------------------------------
 // Scaffold file content generators
 // ---------------------------------------------------------------------------
@@ -122,13 +243,47 @@ Deno.serve(async (req) => {
     // -----------------------------------------------------------------------
     // Environment variables
     // -----------------------------------------------------------------------
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const cloudflareAccountId = Deno.env.get("CLOUDFLARE_ACCOUNT_ID")!;
-    const cloudflareApiToken = Deno.env.get("CLOUDFLARE_API_TOKEN")!;
-    const githubToken = Deno.env.get("GITHUB_TOKEN")!;
-    const githubOwner = Deno.env.get("GITHUB_REPO_OWNER")!;
-    const githubRepo = Deno.env.get("GITHUB_REPO_NAME")!;
+    const supabaseUrl =
+      Deno.env.get("SUPABASE_URL") ?? Deno.env.get("PUBLIC_SUPABASE_URL");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const cloudflareAccountId = Deno.env.get("CLOUDFLARE_ACCOUNT_ID");
+    const cloudflareApiToken = Deno.env.get("CLOUDFLARE_API_TOKEN");
+    const explicitCloudflareZoneId = Deno.env.get("CLOUDFLARE_ZONE_ID");
+    const configuredDomainSuffix =
+      Deno.env.get("CLOUDFLARE_CHAPTER_DOMAIN_SUFFIX") ??
+      "wial.ashwanthbk.com";
+    const githubToken = Deno.env.get("GITHUB_TOKEN");
+    const githubRepoOwner = Deno.env.get("GITHUB_REPO_OWNER");
+    const githubRepoName = Deno.env.get("GITHUB_REPO_NAME");
+    const githubRepoFull = Deno.env.get("GITHUB_REPO"); // owner/repo
+    const [fallbackOwner, fallbackRepo] = (githubRepoFull ?? "").split("/");
+    const githubOwner = githubRepoOwner ?? fallbackOwner;
+    const githubRepo = githubRepoName ?? fallbackRepo;
+
+    const missingEnv: string[] = [];
+    if (!supabaseUrl) missingEnv.push("SUPABASE_URL or PUBLIC_SUPABASE_URL");
+    if (!serviceRoleKey) missingEnv.push("SUPABASE_SERVICE_ROLE_KEY");
+    if (!cloudflareAccountId) missingEnv.push("CLOUDFLARE_ACCOUNT_ID");
+    if (!cloudflareApiToken) missingEnv.push("CLOUDFLARE_API_TOKEN");
+    if (!githubToken) missingEnv.push("GITHUB_TOKEN");
+    if (!githubOwner || !githubRepo) {
+      missingEnv.push(
+        "GITHUB_REPO_OWNER+GITHUB_REPO_NAME or GITHUB_REPO (owner/repo)"
+      );
+    }
+
+    if (missingEnv.length > 0) {
+      return new Response(
+        JSON.stringify({
+          error: "Missing required environment variables",
+          missing: missingEnv,
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
 
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
@@ -216,6 +371,10 @@ Deno.serve(async (req) => {
 
     const slug = chapter.slug as string;
     const chapterFolder = `apps/chapter-${slug}`;
+    const chapterDomainSuffix = configuredDomainSuffix
+      .replace(/^\.+/, "")
+      .trim();
+    const customDomain = `${slug}.${chapterDomainSuffix}`;
     const repoPath = `/repos/${githubOwner}/${githubRepo}`;
 
     // =======================================================================
@@ -454,12 +613,15 @@ Deno.serve(async (req) => {
             production_branch: "main",
             pr_comments_enabled: false,
             deployments_enabled: true,
+            production_deployments_enabled: true,
+            preview_deployment_setting: "all",
           },
         },
         deployment_configs: {
           production: {
             environment_variables: {
-              SUPABASE_URL: { value: supabaseUrl, type: "plain_text" },
+              PUBLIC_SUPABASE_URL: { value: supabaseUrl, type: "plain_text" },
+              SUPABASE_URL: { value: supabaseUrl, type: "plain_text" }, // Backward compatibility
               SUPABASE_SERVICE_ROLE_KEY: {
                 value: serviceRoleKey,
                 type: "secret_text",
@@ -469,7 +631,8 @@ Deno.serve(async (req) => {
           },
           preview: {
             environment_variables: {
-              SUPABASE_URL: { value: supabaseUrl, type: "plain_text" },
+              PUBLIC_SUPABASE_URL: { value: supabaseUrl, type: "plain_text" },
+              SUPABASE_URL: { value: supabaseUrl, type: "plain_text" }, // Backward compatibility
               SUPABASE_SERVICE_ROLE_KEY: {
                 value: serviceRoleKey,
                 type: "secret_text",
@@ -500,11 +663,44 @@ Deno.serve(async (req) => {
       );
     }
 
+    // 2b) Configure build watch paths so only this chapter or shared packages trigger rebuilds
+    const watchPathIncludes = [
+      `${chapterFolder}/*`,
+      `${chapterFolder}/**`,
+      "packages/*",
+      "packages/**",
+    ];
+
+    const updateProjectRes = await fetch(`${cfBaseUrl}/${projectName}`, {
+      method: "PATCH",
+      headers: cfHeaders,
+      body: JSON.stringify({
+        source: {
+          type: "github",
+          config: {
+            owner: githubOwner,
+            repo_name: githubRepo,
+            production_branch: "main",
+            pr_comments_enabled: false,
+            deployments_enabled: true,
+            production_deployments_enabled: true,
+            preview_deployment_setting: "all",
+            path_includes: watchPathIncludes,
+            path_excludes: [],
+          },
+        },
+      }),
+    });
+
+    const updateProjectData = await updateProjectRes.json().catch(() => null);
+    const watchPathsWarning = !updateProjectRes.ok
+      ? `Build watch paths could not be configured: ${updateProjectData?.errors?.[0]?.message || "unknown error"}`
+      : null;
+
     // =======================================================================
     // STEP 3 — Configure custom domain
     // =======================================================================
 
-    const customDomain = `${slug}.wial.ashwanthbk.com`;
     const domainRes = await fetch(
       `${cfBaseUrl}/${projectName}/domains`,
       {
@@ -518,6 +714,23 @@ Deno.serve(async (req) => {
     const domainWarning = !domainRes.ok
       ? `Custom domain setup needs attention: ${domainData?.errors?.[0]?.message || "unknown error"}`
       : null;
+    const cloudflareZoneId =
+      (domainData as { result?: { zone_tag?: string } } | null)?.result
+        ?.zone_tag ??
+      (await resolveZoneIdForDomain(
+        cloudflareApiToken,
+        customDomain,
+        explicitCloudflareZoneId || undefined
+      ));
+
+    const dnsWarning = cloudflareZoneId
+      ? await ensureCnameRecord(
+          cloudflareApiToken,
+          cloudflareZoneId,
+          customDomain,
+          `${projectName}.pages.dev`
+        )
+      : "Could not resolve Cloudflare zone ID; CNAME record was not verified/created";
 
     // =======================================================================
     // STEP 4 — Update chapter record
@@ -557,7 +770,11 @@ Deno.serve(async (req) => {
         project_name: projectName,
         github_folder_path: chapterFolder,
         custom_domain: customDomain,
+        scaffold_commit_sha: newCommitSha,
         domain_warning: domainWarning,
+        watch_paths_warning: watchPathsWarning,
+        dns_warning: dnsWarning,
+        build_watch_paths: watchPathIncludes,
         auto_deploy: true,
       }),
       {

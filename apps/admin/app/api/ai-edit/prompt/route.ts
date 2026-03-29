@@ -77,6 +77,38 @@ export async function POST(req: NextRequest) {
   // Trigger GitHub Actions workflow on the existing branch
   const [owner, repo] = githubRepo.split("/");
   const chapterSlug = (deployment as any).chapters?.slug ?? "";
+  const branchName = deployment.commit_reference ?? "";
+
+  if (!/^[a-z0-9-]+$/.test(chapterSlug)) {
+    await supabase
+      .from("deployments")
+      .update({
+        status: deployment.status === "queued" ? "queued" : "deploying",
+        error_message: "Invalid chapter slug for AI edit session",
+      })
+      .eq("id", deploymentId);
+
+    return NextResponse.json(
+      { error: "Invalid chapter slug for AI edit session" },
+      { status: 500 }
+    );
+  }
+
+  const expectedBranchPrefix = `ai-edit/${chapterSlug}/`;
+  if (!branchName.startsWith(expectedBranchPrefix)) {
+    await supabase
+      .from("deployments")
+      .update({
+        status: deployment.status === "queued" ? "queued" : "deploying",
+        error_message: "Invalid AI edit branch for chapter",
+      })
+      .eq("id", deploymentId);
+
+    return NextResponse.json(
+      { error: "Invalid AI edit branch for chapter" },
+      { status: 500 }
+    );
+  }
 
   try {
     const dispatchRes = await fetch(
@@ -93,7 +125,7 @@ export async function POST(req: NextRequest) {
           inputs: {
             chapter_slug: chapterSlug,
             prompt_text: prompt,
-            branch_name: deployment.commit_reference!,
+            branch_name: branchName,
             deployment_id: deployment.id,
           },
         }),

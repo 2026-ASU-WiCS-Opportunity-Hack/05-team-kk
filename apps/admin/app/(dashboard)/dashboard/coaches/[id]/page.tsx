@@ -1,6 +1,7 @@
 import { getAuthUser, isSuperAdmin } from "@/lib/auth";
 import { createClient } from "@repo/supabase/server";
 import { redirect, notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { CoachEditForm } from "./coach-edit-form";
 
 export default async function CoachDetailPage({
@@ -8,6 +9,7 @@ export default async function CoachDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const t = await getTranslations("ui.coachForm");
   const { id } = await params;
   const user = await getAuthUser();
   if (!user) redirect("/login");
@@ -33,7 +35,7 @@ export default async function CoachDetailPage({
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">
-          {canEdit ? "Edit Coach" : "Coach Profile"}
+          {canEdit ? t("titles.editCoach") : t("titles.coachProfile")}
         </h1>
         <p className="text-muted-foreground">{coach.full_name}</p>
       </div>

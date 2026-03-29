@@ -87,6 +87,7 @@ export function EventsClient({
   const router = useRouter();
   const t = useTranslations("events");
   const tc = useTranslations("common");
+  const tui = useTranslations("ui.events");
   const locale = useLocale();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Event | null>(null);
@@ -181,7 +182,7 @@ export function EventsClient({
         .update(payload)
         .eq("id", editing.id);
       if (error) toast.error(error.message);
-      else toast.success("Event updated.");
+      else toast.success(tui("messages.eventUpdated"));
     } else {
       const { error } = await supabase.from("events").insert({
         ...payload,
@@ -189,7 +190,7 @@ export function EventsClient({
         created_by: userId,
       });
       if (error) toast.error(error.message);
-      else toast.success("Event created.");
+      else toast.success(tui("messages.eventCreated"));
     }
 
     setDialogOpen(false);
@@ -202,7 +203,7 @@ export function EventsClient({
     const { error } = await supabase.from("events").delete().eq("id", id);
     if (error) toast.error(error.message);
     else {
-      toast.success("Event deleted.");
+      toast.success(tui("messages.eventDeleted"));
       router.refresh();
     }
   }
@@ -306,11 +307,11 @@ export function EventsClient({
               <TableRow>
                 <TableHead>{t("eventTitle")}</TableHead>
                 <TableHead>{t("eventType")}</TableHead>
-                <TableHead>{tc("date") || "Date"}</TableHead>
+                <TableHead>{t("date")}</TableHead>
                 <TableHead>{t("location")}</TableHead>
-                <TableHead>Registrations</TableHead>
+                <TableHead>{tui("table.registrations")}</TableHead>
                 <TableHead>{tc("published")}</TableHead>
-                {isGlobalView && <TableHead>{tc("chapter") || "Chapter"}</TableHead>}
+                {isGlobalView && <TableHead>{tui("table.chapter")}</TableHead>}
                 <TableHead className="w-24" />
               </TableRow>
             </TableHeader>
@@ -343,7 +344,7 @@ export function EventsClient({
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {evt.registration_link ? (
-                      <span>{evt.max_attendees ? `0 / ${evt.max_attendees}` : "Open"}</span>
+                      <span>{evt.max_attendees ? `0 / ${evt.max_attendees}` : tui("labels.open")}</span>
                     ) : (
                       <span>—</span>
                     )}
@@ -470,7 +471,7 @@ export function EventsClient({
                 <Input
                   value={virtualLink}
                   onChange={(e) => setVirtualLink(e.target.value)}
-                  placeholder="https://..."
+                  placeholder={tui("labels.urlPlaceholder")}
                 />
               </div>
             ) : (
@@ -479,7 +480,7 @@ export function EventsClient({
                 <Input
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  placeholder="City, Country"
+                  placeholder={tui("labels.cityCountry")}
                 />
               </div>
             )}
@@ -488,7 +489,7 @@ export function EventsClient({
               <Input
                 value={registrationLink}
                 onChange={(e) => setRegistrationLink(e.target.value)}
-                placeholder="https://..."
+                placeholder={tui("labels.urlPlaceholder")}
               />
             </div>
             <div className="flex items-center gap-3">

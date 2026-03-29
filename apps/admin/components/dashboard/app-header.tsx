@@ -3,12 +3,15 @@
 import { Bell } from "lucide-react";
 import { SidebarTrigger } from "@repo/ui/sidebar";
 import { Button } from "@repo/ui/button";
+import { useTranslations } from "next-intl";
 import { ChapterContextSelector } from "./chapter-context-selector";
 import { LanguageSwitcher } from "./language-switcher";
 import { ThemeToggle } from "./theme-toggle";
 import { UserMenu } from "./user-menu";
 
 export function AppHeader() {
+  const t = useTranslations("ui");
+
   return (
     <header className="flex h-16 shrink-0 items-center justify-between border-b bg-background/95 px-4 backdrop-blur-sm sticky top-0 z-20">
       <div className="flex items-center gap-3">
@@ -17,7 +20,7 @@ export function AppHeader() {
       </div>
       <div className="flex items-center gap-1">
         <LanguageSwitcher />
-        <Button variant="ghost" size="icon" aria-label="Notifications" className="relative">
+        <Button variant="ghost" size="icon" aria-label={t("actions.notifications")} className="relative">
           <Bell className="h-4 w-4" />
         </Button>
         <ThemeToggle />

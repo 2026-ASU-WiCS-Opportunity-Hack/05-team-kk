@@ -1,6 +1,7 @@
 import { getAuthUser, isSuperAdmin } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
+import { getTranslations } from "next-intl/server";
 import {
   Card,
   CardContent,
@@ -56,6 +57,8 @@ function formatCurrency(cents: number, currency: string) {
 }
 
 export default async function PaymentsPage() {
+  const t = await getTranslations("nav");
+  const tui = await getTranslations("ui.payments");
   const user = await getAuthUser();
   if (!user) redirect("/login");
 
@@ -68,8 +71,8 @@ export default async function PaymentsPage() {
   if (!chapterId && !isAdmin) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-semibold tracking-tight">Payments</h1>
-        <p className="text-muted-foreground">Select a chapter to view payments.</p>
+        <h1 className="text-3xl font-semibold tracking-tight">{t("payments")}</h1>
+        <p className="text-muted-foreground">{tui("selectChapter")}</p>
       </div>
     );
   }
@@ -82,9 +85,9 @@ export default async function PaymentsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Payments</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">{t("payments")}</h1>
           <p className="text-muted-foreground">
-            Track payments and manage dues collection.
+            {tui("description")}
           </p>
         </div>
       </div>
@@ -93,9 +96,9 @@ export default async function PaymentsPage() {
       <div className="flex items-center gap-3 rounded-lg border border-info/30 bg-info/5 px-4 py-3">
         <Info className="h-5 w-5 text-info shrink-0" />
         <div>
-          <p className="text-sm font-medium">Coming Soon</p>
+          <p className="text-sm font-medium">{tui("comingSoonTitle")}</p>
           <p className="text-sm text-muted-foreground">
-            Payment processing via Stripe Connect and PayPal is under development. The data below is sample data for preview purposes.
+            {tui("comingSoonDescription")}
           </p>
         </div>
       </div>
@@ -104,32 +107,32 @@ export default async function PaymentsPage() {
       <div className="grid gap-4 sm:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Collected</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{tui("cards.totalCollected")}</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{formatCurrency(totalCollected, "usd")}</p>
-            <p className="text-xs text-muted-foreground mt-1">All time</p>
+            <p className="text-xs text-muted-foreground mt-1">{tui("cards.allTime")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Outstanding</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{tui("cards.outstanding")}</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{formatCurrency(outstanding, "usd")}</p>
-            <p className="text-xs text-muted-foreground mt-1">Pending payments</p>
+            <p className="text-xs text-muted-foreground mt-1">{tui("cards.pendingPayments")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">This Month</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{tui("cards.thisMonth")}</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{formatCurrency(thisMonth, "usd")}</p>
-            <p className="text-xs text-muted-foreground mt-1">March 2026</p>
+            <p className="text-xs text-muted-foreground mt-1">{tui("cards.monthMarch2026")}</p>
           </CardContent>
         </Card>
       </div>
@@ -138,11 +141,11 @@ export default async function PaymentsPage() {
       <div className="flex gap-3">
         <Button disabled variant="outline" className="gap-2">
           <CreditCard className="h-4 w-4" />
-          Connect Stripe (Coming Soon)
+          {tui("actions.connectStripe")}
         </Button>
         <Button disabled variant="outline" className="gap-2">
           <CreditCard className="h-4 w-4" />
-          Connect PayPal (Coming Soon)
+          {tui("actions.connectPaypal")}
         </Button>
       </div>
 
@@ -151,11 +154,11 @@ export default async function PaymentsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Payer</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Date</TableHead>
+              <TableHead>{tui("table.payer")}</TableHead>
+              <TableHead>{tui("table.type")}</TableHead>
+              <TableHead>{tui("table.amount")}</TableHead>
+              <TableHead>{tui("table.status")}</TableHead>
+              <TableHead>{tui("table.date")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -169,7 +172,7 @@ export default async function PaymentsPage() {
                 </TableCell>
                 <TableCell>
                   <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${typeBadge[p.type] ?? "bg-muted text-muted-foreground"}`}>
-                    {p.type}
+                    {tui(`types.${p.type}`)}
                   </span>
                 </TableCell>
                 <TableCell className="font-medium">
@@ -177,7 +180,7 @@ export default async function PaymentsPage() {
                 </TableCell>
                 <TableCell>
                   <Badge variant={statusBadge[p.status] ?? "outline"} className="capitalize">
-                    {p.status}
+                    {tui(`status.${p.status}`)}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-muted-foreground">

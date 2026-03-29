@@ -59,6 +59,7 @@ export function AiEditorClient({
   const [previewKey, setPreviewKey] = useState(0);
   const t = useTranslations("aiEditor");
   const tc = useTranslations("common");
+  const tui = useTranslations("ui.aiEditor");
 
   function formatRelativeTime(dateStr: string) {
     const date = new Date(dateStr);
@@ -139,7 +140,7 @@ export function AiEditorClient({
         startTransition(() => router.refresh());
       }
     } catch {
-      setError("Network error. Please try again.");
+      setError(tui("errors.networkTryAgain"));
     } finally {
       setIsStarting(false);
     }
@@ -170,7 +171,7 @@ export function AiEditorClient({
         startTransition(() => router.refresh());
       }
     } catch {
-      setError("Network error. Please try again.");
+      setError(tui("errors.networkTryAgain"));
     } finally {
       setIsSubmitting(false);
     }
@@ -195,7 +196,7 @@ export function AiEditorClient({
           startTransition(() => router.refresh());
         }
       } catch {
-        setError("Network error. Please try again.");
+        setError(tui("errors.networkTryAgain"));
       } finally {
         setIsApproving(false);
       }
@@ -432,7 +433,7 @@ export function AiEditorClient({
                       <button
                         onClick={() => setPreviewKey((k) => k + 1)}
                         className="text-sm font-normal text-muted-foreground hover:text-primary"
-                        title="Refresh preview"
+                        title={tui("actions.refreshPreview")}
                       >
                         <RefreshCw className="h-3.5 w-3.5" />
                       </button>
@@ -454,7 +455,7 @@ export function AiEditorClient({
                       key={previewKey}
                       src={activeSession.preview_url!}
                       className="h-[400px] w-full"
-                      title="AI Edit Preview"
+                      title={tui("labels.previewFrameTitle")}
                     />
                   </div>
 
@@ -512,7 +513,7 @@ export function AiEditorClient({
                     {t("aiIsEditing")}
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Preview will appear here when ready
+                    {tui("labels.previewWillAppearWhenReady")}
                   </p>
                   {elapsed > 0 && (
                     <p className="mt-2 font-mono text-xs text-muted-foreground">
@@ -560,14 +561,14 @@ export function AiEditorClient({
                   <TableRow>
                     <TableHead>{t("lastPrompt")}</TableHead>
                     <TableHead>{t("outcome")}</TableHead>
-                    <TableHead>{t("date")}</TableHead>
+                    <TableHead>{tui("labels.date")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {pastSessions.map((session) => (
                     <TableRow key={session.id}>
                       <TableCell className="max-w-xs truncate text-sm">
-                        {session.ai_prompt ?? "No prompts sent"}
+                        {session.ai_prompt ?? tui("labels.noPromptsSent")}
                       </TableCell>
                       <TableCell>
                         <Badge

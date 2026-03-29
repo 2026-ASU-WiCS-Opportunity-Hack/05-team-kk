@@ -2,9 +2,12 @@ import { getAuthUser, isSuperAdmin, getUserRoleForChapter } from "@/lib/auth";
 import { createClient } from "@repo/supabase/server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { SettingsClient } from "./settings-client";
 
 export default async function SettingsPage() {
+  const t = await getTranslations("settings");
+  const tui = await getTranslations("ui.pageState");
   const user = await getAuthUser();
   if (!user) redirect("/login");
 
@@ -18,9 +21,9 @@ export default async function SettingsPage() {
   if (!resolvedChapterId) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-semibold tracking-tight">Settings</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">{t("title")}</h1>
         <p className="text-muted-foreground">
-          Select a chapter to manage settings.
+          {tui("selectChapterToManage", { subject: t("title").toLowerCase() })}
         </p>
       </div>
     );
@@ -36,8 +39,8 @@ export default async function SettingsPage() {
   if (!chapter) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-semibold tracking-tight">Settings</h1>
-        <p className="text-muted-foreground">Chapter not found.</p>
+        <h1 className="text-3xl font-semibold tracking-tight">{t("title")}</h1>
+        <p className="text-muted-foreground">{tui("chapterNotFound")}</p>
       </div>
     );
   }

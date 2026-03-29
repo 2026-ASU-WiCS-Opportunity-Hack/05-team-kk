@@ -44,6 +44,7 @@ export function DeploymentsClient({
   const [deployError, setDeployError] = useState<string | null>(null);
   const t = useTranslations("deployments");
   const tc = useTranslations("common");
+  const tui = useTranslations("ui.deployments");
 
   const STATUS_CONFIG: Record<
     string,
@@ -95,7 +96,41 @@ export function DeploymentsClient({
   const latestDone = deployments.find((d) => d.status === "done");
 
   // Realtime subscription for live status
-...
+  useEffect(() => {
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`deployments:${chapter.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "deployments",
+          filter: `chapter_id=eq.${chapter.id}`,
+        },
+        () => startTransition(() => router.refresh())
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [chapter.id, router]);
+
+  useEffect(() => {
+    setDeployments(initialDeployments);
+  }, [initialDeployments]);
+
+  function formatDuration(start: string, end: string | null) {
+    if (!end) return tui("labels.inProgress");
+    const diffMs = new Date(end).getTime() - new Date(start).getTime();
+    const totalSeconds = Math.max(0, Math.floor(diffMs / 1000));
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    if (mins > 0) return tui("labels.minutesSeconds", { mins, secs });
+    return tui("labels.seconds", { secs });
+  }
+
   async function handleDeploy() {
     if (!chapter.github_folder_path || !chapter.cloudflare_project_name) {
       setDeployError(t("notProvisionedTrigger"));
@@ -116,7 +151,7 @@ export function DeploymentsClient({
         startTransition(() => router.refresh());
       }
     } catch {
-      setDeployError("Network error. Please try again.");
+      setDeployError(tui("errors.networkTryAgain"));
     } finally {
       setIsDeploying(false);
     }
@@ -271,7 +306,7 @@ export function DeploymentsClient({
                         {isAiEdit ? (
                           <Badge variant="secondary" className="flex w-fit items-center gap-1">
                             <Sparkles className="h-3 w-3" />
-                            {tc("aiEditor")}
+                            {tui("labels.aiEditor")}
                           </Badge>
                         ) : (
                           <Badge variant="outline" className="flex w-fit items-center gap-1">
@@ -318,7 +353,7 @@ export function DeploymentsClient({
                             </AvatarFallback>
                           </Avatar>
                           <span className="text-sm">
-                            {deployment.profiles?.full_name ?? "System"}
+                            {deployment.profiles?.full_name ?? tui("labels.system")}
                           </span>
                         </div>
                       </TableCell>

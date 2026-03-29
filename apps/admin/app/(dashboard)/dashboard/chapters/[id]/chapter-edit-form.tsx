@@ -17,11 +17,14 @@ import {
 import { toast } from "sonner";
 import { Loader2, AlertTriangle } from "lucide-react";
 import type { Tables } from "@repo/types";
+import { useTranslations } from "next-intl";
 
 type Chapter = Tables<"chapters">;
 
 export function ChapterEditForm({ chapter }: { chapter: Chapter }) {
   const router = useRouter();
+  const t = useTranslations("ui.chapterForm");
+  const tc = useTranslations("common");
   const [loading, setLoading] = useState(false);
   const [provisioning, setProvisioning] = useState(false);
 
@@ -41,14 +44,14 @@ export function ChapterEditForm({ chapter }: { chapter: Chapter }) {
         body: JSON.stringify({ chapter_id: chapter.id }),
       });
       if (res.ok) {
-        toast.success("Cloudflare project provisioned successfully.");
+        toast.success(t("messages.provisionSuccess"));
         router.refresh();
       } else {
         const data = await res.json().catch(() => ({}));
-        toast.error(data.error ?? "Provisioning failed");
+        toast.error(data.error ?? t("errors.provisioningFailed"));
       }
     } catch {
-      toast.error("Network error during provisioning");
+      toast.error(t("errors.networkProvisioning"));
     }
     setProvisioning(false);
   }
@@ -91,7 +94,7 @@ export function ChapterEditForm({ chapter }: { chapter: Chapter }) {
       return;
     }
 
-    toast.success("Chapter updated successfully.");
+    toast.success(t("messages.chapterUpdated"));
     router.refresh();
     setLoading(false);
   }
@@ -100,11 +103,11 @@ export function ChapterEditForm({ chapter }: { chapter: Chapter }) {
     <form onSubmit={handleSubmit} className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Basic Information</CardTitle>
+          <CardTitle>{t("sections.basicInfo")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Chapter Name</Label>
+            <Label htmlFor="name">{t("fields.chapterName")}</Label>
             <Input
               id="name"
               value={name}
@@ -113,27 +116,27 @@ export function ChapterEditForm({ chapter }: { chapter: Chapter }) {
             />
           </div>
           <div className="space-y-2">
-            <Label>Slug</Label>
+            <Label>{t("fields.slug")}</Label>
             <Input value={chapter.slug} disabled />
             <p className="text-xs text-muted-foreground">
               {chapter.subdomain}.wial.ashwanthbk.com
             </p>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="status">Status</Label>
+            <Label htmlFor="status">{t("fields.status")}</Label>
             <Select value={status} onValueChange={setStatus}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="suspended">Suspended</SelectItem>
-                <SelectItem value="archived">Archived</SelectItem>
+                <SelectItem value="active">{t("status.active")}</SelectItem>
+                <SelectItem value="suspended">{t("status.suspended")}</SelectItem>
+                <SelectItem value="archived">{t("status.archived")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="language">Default Language</Label>
+            <Label htmlFor="language">{t("fields.defaultLanguage")}</Label>
             <Input
               id="language"
               value={defaultLanguage}
@@ -145,12 +148,12 @@ export function ChapterEditForm({ chapter }: { chapter: Chapter }) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Branding</CardTitle>
+          <CardTitle>{t("sections.branding")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label>Primary Color</Label>
+              <Label>{t("fields.primaryColor")}</Label>
               <div className="flex gap-2">
                 <input
                   type="color"
@@ -165,7 +168,7 @@ export function ChapterEditForm({ chapter }: { chapter: Chapter }) {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Secondary Color</Label>
+              <Label>{t("fields.secondaryColor")}</Label>
               <div className="flex gap-2">
                 <input
                   type="color"
@@ -180,7 +183,7 @@ export function ChapterEditForm({ chapter }: { chapter: Chapter }) {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Accent Color</Label>
+              <Label>{t("fields.accentColor")}</Label>
               <div className="flex gap-2">
                 <input
                   type="color"
@@ -196,7 +199,7 @@ export function ChapterEditForm({ chapter }: { chapter: Chapter }) {
             </div>
           </div>
           <div className="space-y-2">
-            <Label>Font</Label>
+            <Label>{t("fields.font")}</Label>
             <Input
               value={font}
               onChange={(e) => setFont(e.target.value)}
@@ -207,11 +210,11 @@ export function ChapterEditForm({ chapter }: { chapter: Chapter }) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Contact Information</CardTitle>
+          <CardTitle>{t("sections.contactInfo")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label>Email</Label>
+            <Label>{t("fields.contactEmail")}</Label>
             <Input
               type="email"
               value={contactEmail}
@@ -219,14 +222,14 @@ export function ChapterEditForm({ chapter }: { chapter: Chapter }) {
             />
           </div>
           <div className="space-y-2">
-            <Label>Phone</Label>
+            <Label>{t("fields.contactPhone")}</Label>
             <Input
               value={contactPhone}
               onChange={(e) => setContactPhone(e.target.value)}
             />
           </div>
           <div className="space-y-2">
-            <Label>Address</Label>
+            <Label>{t("fields.contactAddress")}</Label>
             <Input
               value={contactAddress}
               onChange={(e) => setContactAddress(e.target.value)}
@@ -241,11 +244,10 @@ export function ChapterEditForm({ chapter }: { chapter: Chapter }) {
             <AlertTriangle className="h-5 w-5 flex-shrink-0 text-amber-600" />
             <div className="flex-1">
               <p className="text-sm font-medium">
-                Cloudflare project not provisioned
+                {t("warnings.provisionTitle")}
               </p>
               <p className="text-xs text-muted-foreground">
-                This chapter does not have a live website yet. Provision a
-                Cloudflare Pages project to deploy the site.
+                {t("warnings.provisionDescription")}
               </p>
             </div>
             <Button
@@ -257,7 +259,7 @@ export function ChapterEditForm({ chapter }: { chapter: Chapter }) {
               {provisioning && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              Provision Site
+              {t("actions.provisionSite")}
             </Button>
           </CardContent>
         </Card>
@@ -265,11 +267,11 @@ export function ChapterEditForm({ chapter }: { chapter: Chapter }) {
 
       <div className="flex justify-end gap-3">
         <Button type="button" variant="ghost" onClick={() => router.back()}>
-          Cancel
+          {tc("cancel")}
         </Button>
         <Button type="submit" disabled={loading}>
           {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Save Changes
+          {tc("saveChanges")}
         </Button>
       </div>
     </form>

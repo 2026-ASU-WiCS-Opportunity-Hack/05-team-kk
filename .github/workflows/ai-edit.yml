@@ -61,6 +61,7 @@ jobs:
       - name: Run AI edit on chapter folder
         run: |
           CHAPTER_DIR="apps/chapter-${{ inputs.chapter_slug }}"
+          ALLOWED_ROOT="$(realpath -m "$CHAPTER_DIR")"
 
           if [ ! -d "$CHAPTER_DIR" ]; then
             echo "Error: Chapter folder $CHAPTER_DIR does not exist"
@@ -134,23 +135,43 @@ jobs:
             exit 1
           fi
 
+          if ! echo "$EDITS" | jq -e 'type == "array"' >/dev/null 2>&1; then
+            echo "Error: AI response was not a JSON array of edits"
+            echo "$EDITS"
+            exit 1
+          fi
+
           # Apply edits — strictly scoped to this chapter's folder only
-          echo "$EDITS" | jq -c '.[]' | while read -r edit; do
+          BLOCKED_EDITS=0
+          APPLIED_EDITS=0
+          while read -r edit; do
             FILE_PATH=$(echo "$edit" | jq -r '.path')
             FILE_CONTENT=$(echo "$edit" | jq -r '.content')
+            RESOLVED_PATH="$(realpath -m "$FILE_PATH")"
 
-            # Security: edits MUST be inside this chapter's directory only
-            case "$FILE_PATH" in
-              apps/chapter-${{ inputs.chapter_slug }}/*)
+            # Security: edits MUST resolve inside this chapter's directory only.
+            case "$RESOLVED_PATH" in
+              "$ALLOWED_ROOT"/*)
                 echo "Applying edit to: $FILE_PATH"
-                mkdir -p "$(dirname "$FILE_PATH")"
-                echo "$FILE_CONTENT" > "$FILE_PATH"
+                mkdir -p "$(dirname "$RESOLVED_PATH")"
+                printf '%s' "$FILE_CONTENT" > "$RESOLVED_PATH"
+                APPLIED_EDITS=$((APPLIED_EDITS + 1))
                 ;;
               *)
-                echo "BLOCKED: Edit to $FILE_PATH is outside allowed scope (must be in apps/chapter-${{ inputs.chapter_slug }}/)"
+                echo "BLOCKED: Edit to $FILE_PATH resolves outside allowed scope ($CHAPTER_DIR)"
+                BLOCKED_EDITS=$((BLOCKED_EDITS + 1))
                 ;;
             esac
-          done
+          done < <(echo "$EDITS" | jq -c '.[]')
+
+          if [ "$BLOCKED_EDITS" -gt 0 ]; then
+            echo "Error: blocked $BLOCKED_EDITS out-of-scope edits"
+            exit 1
+          fi
+
+          if [ "$APPLIED_EDITS" -eq 0 ]; then
+            echo "No valid in-scope edits were produced."
+          fi
 
       - name: Check for changes
         id: changes
@@ -166,7 +187,7 @@ jobs:
         run: |
           git config user.name "WIAL AI Editor"
           git config user.email "ai-editor@wial.ashwanthbk.com"
-          git add -A
+          git add -- "apps/chapter-${{ inputs.chapter_slug }}"
           git commit -m "AI edit: ${{ inputs.prompt_text }}"
           git push origin "${{ inputs.branch_name }}"
 

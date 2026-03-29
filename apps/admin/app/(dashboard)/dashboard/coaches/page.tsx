@@ -18,6 +18,7 @@ import {
 import { Plus, Users, MoreHorizontal, Eye, Pencil, UserMinus, UserCheck, Mail } from "lucide-react";
 import { CoachSearch } from "./coach-search";
 import { cookies } from "next/headers";
+import { getTranslations } from "next-intl/server";
 
 const certBadgeClass: Record<string, string> = {
   CALC: "bg-blue-100 text-blue-700 border-l-2 border-blue-500 dark:bg-blue-900/30 dark:text-blue-300",
@@ -31,6 +32,10 @@ export default async function CoachesPage({
 }: {
   searchParams: Promise<{ cert?: string; lang?: string; active?: string }>;
 }) {
+  const t = await getTranslations("coaches");
+  const tc = await getTranslations("common");
+  const tui = await getTranslations("ui.coachesPage");
+
   const user = await getAuthUser();
   if (!user) redirect("/login");
 
@@ -81,16 +86,16 @@ export default async function CoachesPage({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Coaches</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">{t("title")}</h1>
           <p className="text-muted-foreground">
-            {resolvedChapterId ? "Manage your chapter's coach roster." : "View coaches across all chapters."}
+            {resolvedChapterId ? t("manageRoster") : t("viewAll")}
           </p>
         </div>
         {canAdd && resolvedChapterId && (
           <Button asChild>
             <Link href="/dashboard/coaches/new">
               <Plus className="mr-2 h-4 w-4" />
-              Add Coach
+              {t("addCoach")}
             </Link>
           </Button>
         )}
@@ -105,7 +110,7 @@ export default async function CoachesPage({
           href={`/dashboard/coaches?${new URLSearchParams({ ...(params.lang ? { lang: params.lang } : {}), ...(params.active === "all" ? { active: "all" } : {}) }).toString()}`}
           className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-colors ${!params.cert ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
         >
-          All Levels
+          {tui("filters.allLevels")}
         </Link>
         {["CALC", "SALC", "MALC", "PALC"].map((level) => (
           <Link
@@ -124,7 +129,7 @@ export default async function CoachesPage({
             // Using a form approach for server-side filtering
             onChange={undefined}
           >
-            <option value="">All Languages</option>
+            <option value="">{tui("filters.allLanguages")}</option>
             {[...allLanguages].sort().map((l) => (
               <option key={l} value={l}>{l}</option>
             ))}
@@ -134,7 +139,7 @@ export default async function CoachesPage({
           href={`/dashboard/coaches?${new URLSearchParams({ ...(params.cert ? { cert: params.cert } : {}), ...(params.lang ? { lang: params.lang } : {}), active: params.active === "all" ? "" : "all" }).toString()}`}
           className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-colors ${params.active === "all" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
         >
-          {params.active === "all" ? "Showing All" : "Show Inactive"}
+          {params.active === "all" ? tui("filters.showingAll") : tui("filters.showInactive")}
         </Link>
       </div>
 
@@ -144,13 +149,13 @@ export default async function CoachesPage({
             <TableHeader>
               <TableRow>
                 <TableHead className="w-12" />
-                <TableHead>Name</TableHead>
-                <TableHead>Certification</TableHead>
-                <TableHead>Specializations</TableHead>
-                <TableHead>Languages</TableHead>
-                <TableHead className="text-right">Hours</TableHead>
-                <TableHead>Active</TableHead>
-                {!resolvedChapterId && <TableHead>Chapter</TableHead>}
+                <TableHead>{tui("table.name")}</TableHead>
+                <TableHead>{t("certification")}</TableHead>
+                <TableHead>{tui("table.specializations")}</TableHead>
+                <TableHead>{tui("table.languages")}</TableHead>
+                <TableHead className="text-right">{tui("table.hours")}</TableHead>
+                <TableHead>{tc("active")}</TableHead>
+                {!resolvedChapterId && <TableHead>{tui("table.chapter")}</TableHead>}
                 <TableHead className="w-12" />
               </TableRow>
             </TableHeader>
@@ -182,7 +187,7 @@ export default async function CoachesPage({
                         </Link>
                         {!coach.certification_approved && (
                           <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-700">
-                            Pending Approval
+                            {tui("labels.pendingApproval")}
                           </Badge>
                         )}
                       </div>
@@ -229,21 +234,21 @@ export default async function CoachesPage({
                           <DropdownMenuItem asChild>
                             <Link href={`/dashboard/coaches/${coach.id}`} className="gap-2">
                               <Eye className="h-4 w-4" />
-                              View Profile
+                              {tui("actions.viewProfile")}
                             </Link>
                           </DropdownMenuItem>
                           {canAdd && (
                             <DropdownMenuItem asChild>
                               <Link href={`/dashboard/coaches/${coach.id}`} className="gap-2">
                                 <Pencil className="h-4 w-4" />
-                                Edit
+                                {tc("edit")}
                               </Link>
                             </DropdownMenuItem>
                           )}
                           {canAdd && !coach.user_id && (
                             <DropdownMenuItem className="gap-2">
                               <Mail className="h-4 w-4" />
-                              Send Invitation
+                              {tui("actions.sendInvitation")}
                             </DropdownMenuItem>
                           )}
                           {canAdd && (
@@ -253,12 +258,12 @@ export default async function CoachesPage({
                                 {coach.is_active ? (
                                   <>
                                     <UserMinus className="h-4 w-4" />
-                                    Deactivate
+                                    {tui("actions.deactivate")}
                                   </>
                                 ) : (
                                   <>
                                     <UserCheck className="h-4 w-4" />
-                                    Activate
+                                    {tui("actions.activate")}
                                   </>
                                 )}
                               </DropdownMenuItem>
@@ -276,15 +281,15 @@ export default async function CoachesPage({
       ) : (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
           <Users className="h-12 w-12 text-muted-foreground" />
-          <h3 className="mt-4 text-lg font-semibold">No coaches yet</h3>
+          <h3 className="mt-4 text-lg font-semibold">{t("noCoaches")}</h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            Add your first coach to start building the directory.
+            {t("noCoachesDesc")}
           </p>
           {canAdd && resolvedChapterId && (
             <Button asChild className="mt-4">
               <Link href="/dashboard/coaches/new">
                 <Plus className="mr-2 h-4 w-4" />
-                Add Coach
+                {t("addCoach")}
               </Link>
             </Button>
           )}

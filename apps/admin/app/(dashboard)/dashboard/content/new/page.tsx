@@ -17,10 +17,14 @@ import {
 } from "@repo/ui/select";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function NewContentBlockPage() {
   const router = useRouter();
   const { selectedChapterId } = useChapter();
+  const tContent = useTranslations("content");
+  const t = useTranslations("ui.contentNew");
+  const tc = useTranslations("common");
   const [loading, setLoading] = useState(false);
 
   const [blockKey, setBlockKey] = useState("");
@@ -31,7 +35,7 @@ export default function NewContentBlockPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!selectedChapterId) {
-      toast.error("No chapter selected");
+      toast.error(t("errors.noChapterSelected"));
       return;
     }
     setLoading(true);
@@ -55,7 +59,7 @@ export default function NewContentBlockPage() {
       return;
     }
 
-    toast.success("Content block created.");
+    toast.success(t("messages.blockCreated"));
     router.push(`/dashboard/content/${data.id}`);
   }
 
@@ -63,69 +67,68 @@ export default function NewContentBlockPage() {
     <div className="mx-auto max-w-lg space-y-6">
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">
-          New Content Block
+          {tContent("newBlock")}
         </h1>
         <p className="text-muted-foreground">
-          Add a new content block for your chapter website.
+          {t("intro")}
         </p>
       </div>
       <form onSubmit={handleSubmit} className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Block Settings</CardTitle>
+            <CardTitle>{t("sections.blockSettings")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>Block Key *</Label>
+              <Label>{t("fields.blockKeyRequired")}</Label>
               <Input
                 value={blockKey}
                 onChange={(e) => setBlockKey(e.target.value)}
-                placeholder="e.g. hero_title, about_body"
+                placeholder={t("fields.blockKeyPlaceholder")}
                 required
               />
               <p className="text-xs text-muted-foreground">
-                Use snake_case. Common prefixes: hero_, about_, al_, contact_,
-                join_, nav_, footer_
+                {t("fields.blockKeyHint")}
               </p>
             </div>
             <div className="space-y-2">
-              <Label>Content Type</Label>
+              <Label>{t("fields.contentType")}</Label>
               <Select value={contentType} onValueChange={setContentType}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="rich_text">Rich Text</SelectItem>
-                  <SelectItem value="plain_text">Plain Text</SelectItem>
-                  <SelectItem value="image_url">Image URL</SelectItem>
-                  <SelectItem value="json">JSON</SelectItem>
+                  <SelectItem value="rich_text">{t("types.richText")}</SelectItem>
+                  <SelectItem value="plain_text">{t("types.plainText")}</SelectItem>
+                  <SelectItem value="image_url">{t("types.imageUrl")}</SelectItem>
+                  <SelectItem value="json">{t("types.json")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Locale</Label>
+              <Label>{t("fields.locale")}</Label>
               <Input
                 value={locale}
                 onChange={(e) => setLocale(e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label>Initial Content</Label>
+              <Label>{t("fields.initialContent")}</Label>
               <Input
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder="Optional initial content"
+                placeholder={t("fields.initialContentPlaceholder")}
               />
             </div>
           </CardContent>
         </Card>
         <div className="flex justify-end gap-3">
           <Button type="button" variant="ghost" onClick={() => router.back()}>
-            Cancel
+            {tc("cancel")}
           </Button>
           <Button type="submit" disabled={loading}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Create Block
+            {t("actions.createBlock")}
           </Button>
         </div>
       </form>

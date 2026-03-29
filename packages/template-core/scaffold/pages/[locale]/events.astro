@@ -53,15 +53,24 @@ const typeColors: Record<string, string> = {
 ---
 
 <BaseLayout title="Events" locale={locale}>
-  {/* Hero Banner */}
-  <section class="bg-brand-primary-light py-16 md:py-20">
-    <div class="mx-auto max-w-[1200px] px-4 sm:px-6 text-center">
-      <h1 class="text-4xl md:text-5xl font-bold font-heading" style="color:var(--color-brand-primary)">
-        {title}
-      </h1>
-      {description && (
-        <p class="text-lg text-text-secondary mt-4 max-w-xl mx-auto">{description}</p>
-      )}
+  {/* Page Hero */}
+  <section class="relative overflow-hidden py-16 md:py-24">
+    <div class="absolute inset-0" style="background: linear-gradient(135deg, var(--color-brand-primary-light) 0%, var(--color-warm-ivory) 60%, var(--color-brand-accent-light) 100%)"></div>
+    <div class="relative z-10 mx-auto max-w-[1200px] px-4 sm:px-6">
+      <div class="max-w-3xl">
+        <p class="overline text-brand-accent mb-3">Calendar</p>
+        <h1 class="text-4xl md:text-5xl lg:text-[3.5rem] font-bold font-heading tracking-tight" style="color:var(--color-brand-primary)">
+          {title}
+        </h1>
+        {description && (
+          <p class="text-lg text-text-secondary mt-4 max-w-xl">{description}</p>
+        )}
+      </div>
+    </div>
+    <div class="absolute bottom-0 left-0 right-0">
+      <svg viewBox="0 0 1440 48" preserveAspectRatio="none" class="w-full h-8 md:h-12" fill="var(--color-warm-ivory)">
+        <path d="M0,24 C360,48 1080,0 1440,28 L1440,48 L0,48 Z"/>
+      </svg>
     </div>
   </section>
 
@@ -152,10 +161,12 @@ const typeColors: Record<string, string> = {
           </div>
         </div>
       ) : (
-        <div class="text-center py-16">
-          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mx-auto text-text-muted mb-4"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-          <h3 class="text-lg font-semibold font-heading mb-1">No upcoming events</h3>
-          <p class="text-sm text-text-secondary">Check back soon for workshops, certifications, and meetups.</p>
+        <div class="text-center py-20">
+          <div class="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center" style="background:var(--color-brand-primary-light)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-brand-primary"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold font-heading mb-2">No upcoming events</h3>
+          <p class="text-sm text-text-secondary max-w-sm mx-auto">Check back soon for workshops, certifications, and meetups.</p>
         </div>
       )}
 

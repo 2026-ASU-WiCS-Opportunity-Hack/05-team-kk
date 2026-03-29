@@ -16,6 +16,7 @@ import { Badge } from "@repo/ui/badge";
 import { toast } from "sonner";
 import { Loader2, X, Clock, Award, AlertTriangle } from "lucide-react";
 import type { Tables } from "@repo/types";
+import { useTranslations } from "next-intl";
 
 type Coach = Tables<"coaches">;
 
@@ -39,6 +40,9 @@ export function CoachEditForm({
   isRestricted: boolean;
 }) {
   const router = useRouter();
+  const t = useTranslations("ui.coachForm");
+  const tc = useTranslations("common");
+  const tCoaches = useTranslations("coaches");
   const [loading, setLoading] = useState(false);
 
   const [fullName, setFullName] = useState(coach.full_name);
@@ -106,7 +110,7 @@ export function CoachEditForm({
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Coach updated successfully.");
+      toast.success(t("messages.coachUpdated"));
       router.refresh();
     }
     setLoading(false);
@@ -115,25 +119,25 @@ export function CoachEditForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <Card>
-        <CardHeader><CardTitle>Personal Information</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t("sections.personalInfo")}</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label>Full Name</Label>
+            <Label>{t("fields.fullName")}</Label>
             <Input value={fullName} onChange={(e) => setFullName(e.target.value)} disabled={!canEdit} required />
           </div>
           <div className="space-y-2">
-            <Label>Bio</Label>
+            <Label>{t("fields.bio")}</Label>
             <Textarea value={bio} onChange={(e) => setBio(e.target.value)} disabled={!canEdit} className="min-h-[120px]" />
           </div>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>Professional Details</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t("sections.professionalDetails")}</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Certification Level</Label>
+              <Label>{t("fields.certificationLevel")}</Label>
               <Select value={certLevel} onValueChange={setCertLevel} disabled={isRestricted || !canEdit}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -143,22 +147,22 @@ export function CoachEditForm({
                   <SelectItem value="PALC">PALC</SelectItem>
                 </SelectContent>
               </Select>
-              {isRestricted && <p className="text-xs text-muted-foreground">Only your chapter lead can change this.</p>}
+              {isRestricted && <p className="text-xs text-muted-foreground">{t("warnings.chapterLeadOnly")}</p>}
             </div>
             <div className="space-y-2">
-              <Label>Hours Logged</Label>
+              <Label>{t("fields.hoursLogged")}</Label>
               <Input type="number" value={hoursLogged} onChange={(e) => setHoursLogged(Number(e.target.value))} disabled={isRestricted || !canEdit} />
-              {isRestricted && <p className="text-xs text-muted-foreground">Only your chapter lead can change this.</p>}
+              {isRestricted && <p className="text-xs text-muted-foreground">{t("warnings.chapterLeadOnly")}</p>}
             </div>
           </div>
           {!isRestricted && canEdit && (
             <div className="flex items-center gap-3">
               <Switch checked={isActive} onCheckedChange={setIsActive} />
-              <Label>Active in directory</Label>
+              <Label>{t("fields.activeInDirectory")}</Label>
             </div>
           )}
           <div className="space-y-2">
-            <Label>Specializations</Label>
+            <Label>{t("fields.specializations")}</Label>
             <div className="flex flex-wrap gap-1 mb-2">
               {specializations.map((s) => (
                 <Badge key={s} variant="secondary" className="gap-1">
@@ -181,12 +185,12 @@ export function CoachEditForm({
                     addTag(specInput, specializations, setSpecializations, setSpecInput);
                   }
                 }}
-                placeholder="Type and press Enter"
+                placeholder={t("fields.typeAndPressEnter")}
               />
             )}
           </div>
           <div className="space-y-2">
-            <Label>Languages</Label>
+            <Label>{t("fields.languages")}</Label>
             <div className="flex flex-wrap gap-1 mb-2">
               {languages.map((l) => (
                 <Badge key={l} variant="secondary" className="gap-1">
@@ -209,7 +213,7 @@ export function CoachEditForm({
                     addTag(langInput, languages, setLanguages, setLangInput);
                   }
                 }}
-                placeholder="Type and press Enter"
+                placeholder={t("fields.typeAndPressEnter")}
               />
             )}
           </div>
@@ -219,11 +223,11 @@ export function CoachEditForm({
       {/* Certification Section — chapter lead / super admin only */}
       {!isRestricted && canEdit && (
         <Card>
-          <CardHeader><CardTitle>Certification</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{tCoaches("certification")}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Recertification Due Date</Label>
+                <Label>{t("fields.recertificationDueDate")}</Label>
                 <Input
                   type="date"
                   value={recertDate}
@@ -232,12 +236,12 @@ export function CoachEditForm({
                 {recertDate && (() => {
                   const days = Math.ceil((new Date(recertDate).getTime() - Date.now()) / 86400000);
                   const color = days < 30 ? "text-destructive" : days < 90 ? "text-amber-600" : "text-green-600";
-                  const label = days < 0 ? "Overdue" : `Due in ${days} days`;
+                  const label = days < 0 ? t("labels.overdue") : t("labels.dueInDays", { days });
                   return <p className={`text-xs font-medium ${color}`}>{label}</p>;
                 })()}
               </div>
               <div className="space-y-2">
-                <Label>CE Credits Earned</Label>
+                <Label>{tCoaches("ceCredits")}</Label>
                 <Input
                   type="number"
                   value={ceCredits}
@@ -247,13 +251,13 @@ export function CoachEditForm({
             </div>
             <div className="flex items-center gap-3">
               <Switch checked={certApproved} onCheckedChange={setCertApproved} />
-              <Label>Approved for public directory</Label>
+              <Label>{tCoaches("approvedForDirectory")}</Label>
             </div>
             {!certApproved && (
               <div className="flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 dark:border-amber-900 dark:bg-amber-950">
                 <AlertTriangle className="h-4 w-4 text-amber-600" />
                 <p className="text-sm text-amber-700 dark:text-amber-400">
-                  This coach will not appear in the public directory until approved.
+                  {tCoaches("notApprovedWarning")}
                 </p>
               </div>
             )}
@@ -264,37 +268,37 @@ export function CoachEditForm({
       {/* My Certification — read-only for coaches */}
       {isRestricted && (
         <Card className="border-l-4" style={{ borderLeftColor: certLevelColor(coach.certification_level) }}>
-          <CardHeader><CardTitle className="flex items-center gap-2"><Award className="h-5 w-5" /> My Certification</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="flex items-center gap-2"><Award className="h-5 w-5" /> {tCoaches("myCertification")}</CardTitle></CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <p className="text-xs text-muted-foreground">Current Level</p>
+                <p className="text-xs text-muted-foreground">{tCoaches("currentLevel")}</p>
                 <Badge className="mt-1" style={{ background: certLevelColor(coach.certification_level), color: "white" }}>
                   {coach.certification_level}
                 </Badge>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Hours Logged</p>
+                <p className="text-xs text-muted-foreground">{tCoaches("hoursLogged")}</p>
                 <p className="text-2xl font-bold flex items-center gap-1">
                   <Clock className="h-4 w-4 text-muted-foreground" />
                   {coach.hours_logged}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Recertification Due</p>
+                <p className="text-xs text-muted-foreground">{tCoaches("recertDue")}</p>
                 {coach.recertification_due_date ? (() => {
                   const days = Math.ceil((new Date(coach.recertification_due_date).getTime() - Date.now()) / 86400000);
                   const color = days < 30 ? "text-destructive" : days < 90 ? "text-amber-600" : "text-green-600";
                   return (
                     <p className={`font-medium ${color}`}>
                       {new Date(coach.recertification_due_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                      <span className="text-xs ml-1">({days < 0 ? "Overdue" : `${days} days`})</span>
+                      <span className="text-xs ml-1">({days < 0 ? t("labels.overdue") : t("labels.days", { days })})</span>
                     </p>
                   );
-                })() : <p className="text-muted-foreground">Not set</p>}
+                })() : <p className="text-muted-foreground">{t("labels.notSet")}</p>}
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">CE Credits Earned</p>
+                <p className="text-xs text-muted-foreground">{tCoaches("ceCredits")}</p>
                 <p className="text-2xl font-bold">{coach.ce_credits_earned}</p>
               </div>
             </div>
@@ -303,39 +307,39 @@ export function CoachEditForm({
       )}
 
       <Card>
-        <CardHeader><CardTitle>Location & Contact</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t("sections.locationContact")}</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>City</Label>
+              <Label>{t("fields.city")}</Label>
               <Input value={city} onChange={(e) => setCity(e.target.value)} disabled={!canEdit} />
             </div>
             <div className="space-y-2">
-              <Label>Country</Label>
+              <Label>{t("fields.country")}</Label>
               <Input value={country} onChange={(e) => setCountry(e.target.value)} disabled={!canEdit} />
             </div>
           </div>
           <div className="space-y-2">
-            <Label>Contact Email</Label>
+            <Label>{t("fields.contactEmail")}</Label>
             <Input type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} disabled={!canEdit} />
           </div>
           <div className="space-y-2">
-            <Label>Contact Phone</Label>
+            <Label>{t("fields.contactPhone")}</Label>
             <Input value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} disabled={!canEdit} />
           </div>
           <div className="space-y-2">
-            <Label>Website</Label>
-            <Input value={website} onChange={(e) => setWebsite(e.target.value)} disabled={!canEdit} placeholder="https://" />
+            <Label>{t("fields.website")}</Label>
+            <Input value={website} onChange={(e) => setWebsite(e.target.value)} disabled={!canEdit} placeholder={t("fields.websitePlaceholder")} />
           </div>
         </CardContent>
       </Card>
 
       {canEdit && (
         <div className="flex justify-end gap-3">
-          <Button type="button" variant="ghost" onClick={() => router.back()}>Cancel</Button>
+          <Button type="button" variant="ghost" onClick={() => router.back()}>{tc("cancel")}</Button>
           <Button type="submit" disabled={loading}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Save Changes
+            {tc("saveChanges")}
           </Button>
         </div>
       )}

@@ -52,15 +52,24 @@ const typeIcons: Record<string, { svg: string; color: string; bgColor: string }>
 ---
 
 <BaseLayout title="Resources" locale={locale}>
-  {/* Hero Banner */}
-  <section class="bg-brand-primary-light py-16 md:py-20">
-    <div class="mx-auto max-w-[1200px] px-4 sm:px-6 text-center">
-      <h1 class="text-4xl md:text-5xl font-bold font-heading" style="color:var(--color-brand-primary)">
-        {title}
-      </h1>
-      {description && (
-        <p class="text-lg text-text-secondary mt-4 max-w-xl mx-auto">{description}</p>
-      )}
+  {/* Page Hero */}
+  <section class="relative overflow-hidden py-16 md:py-24">
+    <div class="absolute inset-0" style="background: linear-gradient(135deg, var(--color-brand-primary-light) 0%, var(--color-warm-ivory) 60%, var(--color-brand-accent-light) 100%)"></div>
+    <div class="relative z-10 mx-auto max-w-[1200px] px-4 sm:px-6">
+      <div class="max-w-3xl">
+        <p class="overline text-brand-accent mb-3">Library</p>
+        <h1 class="text-4xl md:text-5xl lg:text-[3.5rem] font-bold font-heading tracking-tight" style="color:var(--color-brand-primary)">
+          {title}
+        </h1>
+        {description && (
+          <p class="text-lg text-text-secondary mt-4 max-w-xl">{description}</p>
+        )}
+      </div>
+    </div>
+    <div class="absolute bottom-0 left-0 right-0">
+      <svg viewBox="0 0 1440 48" preserveAspectRatio="none" class="w-full h-8 md:h-12" fill="var(--color-warm-ivory)">
+        <path d="M0,24 C360,48 1080,0 1440,28 L1440,48 L0,48 Z"/>
+      </svg>
     </div>
   </section>
 
@@ -75,7 +84,7 @@ const typeIcons: Record<string, { svg: string; color: string; bgColor: string }>
                 href={res.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                class="group flex gap-4 rounded-xl border border-border-subtle bg-white p-5 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
+                class="card-editorial group flex gap-4 p-5"
               >
                 {/* Type icon */}
                 <div
@@ -104,10 +113,12 @@ const typeIcons: Record<string, { svg: string; color: string; bgColor: string }>
           })}
         </div>
       ) : (
-        <div class="text-center py-16">
-          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mx-auto text-text-muted mb-4"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
-          <h3 class="text-lg font-semibold font-heading mb-1">No resources yet</h3>
-          <p class="text-sm text-text-secondary">Check back soon for documents, videos, and learning materials.</p>
+        <div class="text-center py-20">
+          <div class="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center" style="background:var(--color-brand-primary-light)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-brand-primary"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold font-heading mb-2">No resources yet</h3>
+          <p class="text-sm text-text-secondary max-w-sm mx-auto">Check back soon for documents, videos, and learning materials.</p>
         </div>
       )}
     </div>

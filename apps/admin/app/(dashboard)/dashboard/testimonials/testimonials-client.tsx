@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/avatar";
 import { Plus, Pencil, Trash2, Loader2, MessageSquare, GripVertical, ArrowUp, ArrowDown } from "lucide-react";
 import type { Tables } from "@repo/types";
+import { useTranslations } from "next-intl";
 
 type Testimonial = Tables<"testimonials">;
 
@@ -38,6 +39,9 @@ export function TestimonialsClient({
   chapterId: string;
 }) {
   const router = useRouter();
+  const t = useTranslations("testimonials");
+  const tc = useTranslations("common");
+  const tui = useTranslations("ui.testimonials");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Testimonial | null>(null);
   const [loading, setLoading] = useState(false);
@@ -84,7 +88,7 @@ export function TestimonialsClient({
         })
         .eq("id", editing.id);
       if (error) toast.error(error.message);
-      else toast.success("Testimonial updated.");
+      else toast.success(tui("messages.updated"));
     } else {
       const { error } = await supabase.from("testimonials").insert({
         chapter_id: chapterId,
@@ -95,7 +99,7 @@ export function TestimonialsClient({
         sort_order: sortOrder,
       });
       if (error) toast.error(error.message);
-      else toast.success("Testimonial added.");
+      else toast.success(tui("messages.added"));
     }
 
     setDialogOpen(false);
@@ -111,7 +115,7 @@ export function TestimonialsClient({
       .eq("id", id);
     if (error) toast.error(error.message);
     else {
-      toast.success("Testimonial deleted.");
+      toast.success(tui("messages.deleted"));
       router.refresh();
     }
   }
@@ -143,7 +147,7 @@ export function TestimonialsClient({
       supabase.from("testimonials").update({ sort_order: current.sort_order }).eq("id", swap.id),
     ]);
 
-    if (r1.error || r2.error) toast.error("Failed to reorder.");
+    if (r1.error || r2.error) toast.error(tui("errors.reorderFailed"));
     else router.refresh();
   }
 
@@ -152,42 +156,42 @@ export function TestimonialsClient({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">
-            Testimonials
+            {t("title")}
           </h1>
           <p className="text-muted-foreground">
-            Manage client testimonials for your chapter.
+            {t("description")}
           </p>
         </div>
         <Button onClick={openCreate}>
           <Plus className="mr-2 h-4 w-4" />
-          Add Testimonial
+          {t("addTestimonial")}
         </Button>
       </div>
 
       {testimonials.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
           <MessageSquare className="h-12 w-12 text-muted-foreground" />
-          <h3 className="mt-4 text-lg font-semibold">No testimonials yet</h3>
+          <h3 className="mt-4 text-lg font-semibold">{t("noTestimonials")}</h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            Add your first testimonial to showcase on your chapter website.
+            {t("noTestimonialsDesc")}
           </p>
           <Button onClick={openCreate} className="mt-4">
             <Plus className="mr-2 h-4 w-4" />
-            Add Testimonial
+            {t("addTestimonial")}
           </Button>
         </div>
       ) : (
         <div className="rounded-md border">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead className="w-10" />
-                <TableHead>Quote</TableHead>
-                <TableHead>Author</TableHead>
-                <TableHead>Featured</TableHead>
-                <TableHead>Active</TableHead>
-                <TableHead className="w-24" />
-              </TableRow>
+                <TableRow>
+                  <TableHead className="w-10" />
+                  <TableHead>{tui("table.quote")}</TableHead>
+                  <TableHead>{tui("table.author")}</TableHead>
+                  <TableHead>{tui("table.featured")}</TableHead>
+                  <TableHead>{tc("active")}</TableHead>
+                  <TableHead className="w-24" />
+                </TableRow>
             </TableHeader>
             <TableBody>
               {testimonials.map((t, idx) => {
@@ -291,12 +295,12 @@ export function TestimonialsClient({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editing ? "Edit Testimonial" : "Add Testimonial"}
+              {editing ? tui("actions.edit") : t("addTestimonial")}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Quote *</Label>
+              <Label>{tui("fields.quoteRequired")}</Label>
               <Textarea
                 value={quote}
                 onChange={(e) => setQuote(e.target.value)}
@@ -305,7 +309,7 @@ export function TestimonialsClient({
               />
             </div>
             <div className="space-y-2">
-              <Label>Author Name *</Label>
+              <Label>{tui("fields.authorNameRequired")}</Label>
               <Input
                 value={authorName}
                 onChange={(e) => setAuthorName(e.target.value)}
@@ -313,29 +317,29 @@ export function TestimonialsClient({
               />
             </div>
             <div className="space-y-2">
-              <Label>Author Title / Organization</Label>
+              <Label>{tui("fields.authorTitle")}</Label>
               <Input
                 value={authorTitle}
                 onChange={(e) => setAuthorTitle(e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label>Author Photo URL</Label>
+              <Label>{tui("fields.authorPhotoUrl")}</Label>
               <Input
                 value={authorPhotoUrl}
                 onChange={(e) => setAuthorPhotoUrl(e.target.value)}
-                placeholder="https://..."
+                placeholder={tui("fields.urlPlaceholder")}
               />
               {authorPhotoUrl && (
                 <img
                   src={authorPhotoUrl}
-                  alt="Author photo preview"
+                  alt={tui("fields.authorPhotoPreview")}
                   className="h-16 w-16 rounded-full object-cover"
                 />
               )}
             </div>
             <div className="space-y-2">
-              <Label>Sort Order</Label>
+              <Label>{tui("fields.sortOrder")}</Label>
               <Input
                 type="number"
                 value={sortOrder}
@@ -345,14 +349,14 @@ export function TestimonialsClient({
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setDialogOpen(false)}>
-              Cancel
+              {tc("cancel")}
             </Button>
             <Button
               onClick={handleSave}
               disabled={loading || !quote || !authorName}
             >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {editing ? "Save Changes" : "Add Testimonial"}
+              {editing ? tc("saveChanges") : t("addTestimonial")}
             </Button>
           </DialogFooter>
         </DialogContent>

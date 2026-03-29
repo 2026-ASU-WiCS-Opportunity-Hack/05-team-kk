@@ -15,6 +15,7 @@ import { locales, localeNames, type Locale } from "@/i18n/config";
 export function LanguageSwitcher() {
   const router = useRouter();
   const currentLocale = useLocale();
+  const t = useTranslations("ui");
 
   function handleChange(locale: Locale) {
     document.cookie = `locale=${locale};path=/;max-age=${60 * 60 * 24 * 365};samesite=lax`;
@@ -28,7 +29,7 @@ export function LanguageSwitcher() {
           variant="ghost"
           size="sm"
           className="h-8 gap-1.5 px-2 text-xs font-medium"
-          aria-label="Change language"
+          aria-label={t("actions.changeLanguage")}
         >
           <Globe className="h-3.5 w-3.5" />
           {currentLocale.toUpperCase()}

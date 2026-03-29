@@ -1,6 +1,7 @@
 import { getAuthUser, isSuperAdmin } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
+import { getTranslations } from "next-intl/server";
 import {
   Card,
   CardContent,
@@ -17,17 +18,19 @@ import {
 } from "lucide-react";
 
 const MOCK_TOP_PAGES = [
-  { page: "Landing Page", views: 4280 },
-  { page: "Coach Directory", views: 2150 },
-  { page: "About", views: 1830 },
-  { page: "Events", views: 1240 },
-  { page: "Contact", views: 980 },
-  { page: "Testimonials", views: 760 },
-  { page: "Resources", views: 520 },
-  { page: "Join / Membership", views: 410 },
+  { page: "landingPage", views: 4280 },
+  { page: "coachDirectory", views: 2150 },
+  { page: "about", views: 1830 },
+  { page: "events", views: 1240 },
+  { page: "contact", views: 980 },
+  { page: "testimonials", views: 760 },
+  { page: "resources", views: 520 },
+  { page: "membership", views: 410 },
 ];
 
 export default async function AnalyticsPage() {
+  const t = await getTranslations("nav");
+  const tui = await getTranslations("ui.analytics");
   const user = await getAuthUser();
   if (!user) redirect("/login");
 
@@ -40,11 +43,11 @@ export default async function AnalyticsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight">Analytics</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">{t("analytics")}</h1>
         <p className="text-muted-foreground">
           {isAdmin && !chapterId
-            ? "Platform-wide traffic and engagement metrics."
-            : "Website traffic and engagement metrics for your chapter."}
+            ? tui("descriptionGlobal")
+            : tui("descriptionChapter")}
         </p>
       </div>
 
@@ -52,9 +55,9 @@ export default async function AnalyticsPage() {
       <div className="flex items-center gap-3 rounded-lg border border-info/30 bg-info/5 px-4 py-3">
         <Info className="h-5 w-5 text-info shrink-0" />
         <div>
-          <p className="text-sm font-medium">Coming Soon</p>
+          <p className="text-sm font-medium">{tui("comingSoonTitle")}</p>
           <p className="text-sm text-muted-foreground">
-            Detailed analytics powered by Cloudflare Analytics API is under development. The data below is sample data for preview purposes.
+            {tui("comingSoonDescription")}
           </p>
         </div>
       </div>
@@ -63,42 +66,42 @@ export default async function AnalyticsPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Page Views</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{tui("cards.pageViews")}</CardTitle>
             <Eye className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">12,170</p>
-            <p className="text-xs text-muted-foreground mt-1">Last 30 days</p>
+            <p className="text-xs text-muted-foreground mt-1">{tui("cards.last30Days")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Unique Visitors</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{tui("cards.uniqueVisitors")}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">3,842</p>
-            <p className="text-xs text-muted-foreground mt-1">Last 30 days</p>
+            <p className="text-xs text-muted-foreground mt-1">{tui("cards.last30Days")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Contact Submissions</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{tui("cards.contactSubmissions")}</CardTitle>
             <Mail className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">47</p>
-            <p className="text-xs text-muted-foreground mt-1">Last 30 days</p>
+            <p className="text-xs text-muted-foreground mt-1">{tui("cards.last30Days")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Event Registrations</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{tui("cards.eventRegistrations")}</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">128</p>
-            <p className="text-xs text-muted-foreground mt-1">Last 30 days</p>
+            <p className="text-xs text-muted-foreground mt-1">{tui("cards.last30Days")}</p>
           </CardContent>
         </Card>
       </div>
@@ -108,15 +111,15 @@ export default async function AnalyticsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BarChart3 className="h-5 w-5 text-muted-foreground" />
-            Website Traffic
+            {tui("traffic.title")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center rounded-lg border border-dashed h-[240px]">
             <div className="text-center text-muted-foreground">
               <BarChart3 className="h-12 w-12 mx-auto mb-3 opacity-40" />
-              <p className="text-sm font-medium">Traffic chart coming soon</p>
-              <p className="text-xs mt-1">Powered by Cloudflare Analytics</p>
+              <p className="text-sm font-medium">{tui("traffic.comingSoon")}</p>
+              <p className="text-xs mt-1">{tui("traffic.poweredBy")}</p>
             </div>
           </div>
         </CardContent>
@@ -125,7 +128,7 @@ export default async function AnalyticsPage() {
       {/* Top Pages */}
       <Card>
         <CardHeader>
-          <CardTitle>Top Pages</CardTitle>
+          <CardTitle>{tui("topPages.title")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -137,7 +140,7 @@ export default async function AnalyticsPage() {
                   <span className="w-5 text-sm text-muted-foreground text-right">{i + 1}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium truncate">{page.page}</span>
+                      <span className="text-sm font-medium truncate">{tui(`topPages.pages.${page.page}`)}</span>
                       <span className="text-sm text-muted-foreground">{page.views.toLocaleString()}</span>
                     </div>
                     <div className="h-1.5 rounded-full bg-muted overflow-hidden">

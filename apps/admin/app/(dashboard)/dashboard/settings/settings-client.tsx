@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@repo/ui/tabs";
 import { Badge } from "@repo/ui/badge";
 import { toast } from "sonner";
 import { Switch } from "@repo/ui/switch";
-import { Loader2, Plus, X } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import type { Tables } from "@repo/types";
 import { BrandingPreview } from "@/components/dashboard/branding-preview";
 import { useTranslations } from "next-intl";
@@ -48,9 +48,41 @@ export function SettingsClient({
   const [loading, setLoading] = useState(false);
   const t = useTranslations("settings");
   const tc = useTranslations("common");
+  const tui = useTranslations("ui.settings");
 
   // Branding state
-...
+  const [primaryColor, setPrimaryColor] = useState(chapter.brand_primary_color);
+  const [secondaryColor, setSecondaryColor] = useState(chapter.brand_secondary_color);
+  const [accentColor, setAccentColor] = useState(chapter.brand_accent_color);
+  const [font, setFont] = useState(chapter.brand_font ?? "");
+
+  // Contact state
+  const [contactEmail, setContactEmail] = useState(chapter.contact_email ?? "");
+  const [contactPhone, setContactPhone] = useState(chapter.contact_phone ?? "");
+  const [contactAddress, setContactAddress] = useState(chapter.contact_address ?? "");
+
+  // Languages
+  const [activeLanguages, setActiveLanguages] = useState<string[]>(
+    chapter.active_languages?.length
+      ? chapter.active_languages
+      : [chapter.default_language]
+  );
+  const availableToAdd = AVAILABLE_LANGUAGES.filter(
+    (l) => !activeLanguages.includes(l.code)
+  );
+
+  // AI
+  const [aiMatching, setAiMatching] = useState(aiCoachMatchingEnabled);
+
+  function addLanguage(code: string) {
+    if (activeLanguages.includes(code)) return;
+    setActiveLanguages((prev) => [...prev, code]);
+  }
+
+  function removeLanguage(code: string) {
+    if (code === chapter.default_language) return;
+    setActiveLanguages((prev) => prev.filter((l) => l !== code));
+  }
   async function handleSaveBranding() {
     setLoading(true);
     const supabase = createClient();
@@ -66,7 +98,7 @@ export function SettingsClient({
 
     if (error) toast.error(error.message);
     else {
-      toast.success("Branding saved.");
+      toast.success(tui("messages.brandingSaved"));
       router.refresh();
     }
     setLoading(false);
@@ -86,7 +118,7 @@ export function SettingsClient({
 
     if (error) toast.error(error.message);
     else {
-      toast.success("Contact information saved.");
+      toast.success(tui("messages.contactSaved"));
       router.refresh();
     }
     setLoading(false);
@@ -102,12 +134,38 @@ export function SettingsClient({
 
     if (error) toast.error(error.message);
     else {
-      toast.success("Languages updated.");
+      toast.success(tui("messages.languagesUpdated"));
       router.refresh();
     }
     setLoading(false);
   }
-...
+
+  async function handleSaveAiMatching(nextValue: boolean) {
+    setAiMatching(nextValue);
+    setLoading(true);
+
+    const supabase = createClient();
+    const { error } = await supabase.from("content_blocks").upsert(
+      {
+        chapter_id: chapter.id,
+        block_key: "ai_coach_matching_enabled",
+        locale: chapter.default_language,
+        content_type: "plain_text",
+        content: nextValue ? "true" : "false",
+      },
+      { onConflict: "chapter_id,block_key,locale" }
+    );
+
+    if (error) {
+      setAiMatching(!nextValue);
+      toast.error(error.message);
+    } else {
+      toast.success(tui("messages.aiSettingsSaved"));
+      router.refresh();
+    }
+
+    setLoading(false);
+  }
   return (
     <div className="space-y-6">
       <div>
@@ -333,7 +391,7 @@ export function SettingsClient({
                         : "outline"
                   }
                 >
-                  {chapter.status}
+                  {tui(`status.${chapter.status}`)}
                 </Badge>
               </div>
             </CardContent>

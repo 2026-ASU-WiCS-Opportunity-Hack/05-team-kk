@@ -29,6 +29,7 @@ import { Loader2, Sparkles, Languages, ChevronRight, CheckCircle2, Replace, Tras
 import { TiptapEditor } from "@/components/tiptap-editor";
 import { ResourcesEditor } from "@/components/resources-editor";
 import type { Tables } from "@repo/types";
+import { useTranslations } from "next-intl";
 
 type ContentBlock = Tables<"content_blocks">;
 
@@ -37,32 +38,32 @@ function humanizeKey(key: string): string {
 }
 
 const pageGroups: Record<string, string> = {
-  hero: "Landing Page",
-  about: "About Page",
-  al: "Action Learning Page",
-  cert: "Certification",
-  coaches: "Coach Directory",
-  testimonials: "Testimonials Page",
-  events: "Events Page",
-  resources: "Resources Page",
-  contact: "Contact Page",
-  join: "Membership Page",
-  nav: "Header Navigation",
-  footer: "Footer",
+  hero: "landingPage",
+  about: "aboutPage",
+  al: "actionLearningPage",
+  cert: "certification",
+  coaches: "coachDirectory",
+  testimonials: "testimonialsPage",
+  events: "eventsPage",
+  resources: "resourcesPage",
+  contact: "contactPage",
+  join: "membershipPage",
+  nav: "headerNavigation",
+  footer: "footer",
 };
 
 function getPageGroup(blockKey: string): string {
   const prefix = blockKey.split("_")[0]!;
-  return pageGroups[prefix] ?? "Other";
+  return pageGroups[prefix] ?? "other";
 }
 
 const contentTypeOptions = [
-  { value: "welcome", label: "Welcome / Hero text" },
-  { value: "about", label: "About page" },
-  { value: "coach_program", label: "Coach program description" },
-  { value: "mission", label: "Mission statement" },
-  { value: "join", label: "Join / Membership pitch" },
-  { value: "custom", label: "Custom" },
+  "welcome",
+  "about",
+  "coach_program",
+  "mission",
+  "join",
+  "custom",
 ];
 
 export function ContentEditor({
@@ -75,6 +76,9 @@ export function ContentEditor({
   activeLanguages: string[];
 }) {
   const router = useRouter();
+  const tContent = useTranslations("content");
+  const tc = useTranslations("common");
+  const t = useTranslations("ui.contentEditor");
   const [content, setContent] = useState(block.content);
   const [loading, setLoading] = useState(false);
   const [jsonError, setJsonError] = useState<string | null>(null);
@@ -140,7 +144,7 @@ export function ContentEditor({
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Content saved.");
+      toast.success(t("messages.contentSaved"));
       router.refresh();
     }
     setLoading(false);
@@ -177,10 +181,10 @@ export function ContentEditor({
       if (res.ok && data.content) {
         setGeneratedContent(data.content);
       } else {
-        toast.error(data.error ?? "Generation failed");
+        toast.error(data.error ?? t("errors.generationFailed"));
       }
     } catch {
-      toast.error("Network error during generation");
+      toast.error(t("errors.networkGeneration"));
     }
 
     setGenerating(false);
@@ -190,7 +194,7 @@ export function ContentEditor({
     setContent(generatedContent);
     setGenerateOpen(false);
     setGeneratedContent("");
-    toast.success("Generated content applied. Review and save when ready.");
+    toast.success(t("messages.generatedApplied"));
   }
 
   async function handleTranslate() {
@@ -224,10 +228,10 @@ export function ContentEditor({
       if (res.ok && data.content) {
         setTranslatedContent(data.content);
       } else {
-        toast.error(data.error ?? "Translation failed");
+        toast.error(data.error ?? t("errors.translationFailed"));
       }
     } catch {
-      toast.error("Network error during translation");
+      toast.error(t("errors.networkTranslation"));
     }
 
     setTranslating(false);
@@ -250,7 +254,7 @@ export function ContentEditor({
       toast.error(error.message);
     } else {
       toast.success(
-        `Translation saved for ${targetLocale.toUpperCase()}.`
+        t("messages.translationSaved", { locale: targetLocale.toUpperCase() })
       );
       setTranslateOpen(false);
       setTranslatedContent("");
@@ -260,16 +264,19 @@ export function ContentEditor({
 
   const otherLocales = activeLanguages.filter((l) => l !== block.locale);
   const pageGroup = getPageGroup(block.block_key);
+  const pageGroupLabel = t.has(`groups.${pageGroup}`)
+    ? t(`groups.${pageGroup}`)
+    : pageGroup;
 
   return (
     <>
       {/* Breadcrumbs */}
       <nav className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
         <Link href="/dashboard/content" className="text-primary hover:underline">
-          Content
+          {tContent("title")}
         </Link>
         <ChevronRight className="h-3 w-3" />
-        <span>{pageGroup}</span>
+        <span>{pageGroupLabel}</span>
         <ChevronRight className="h-3 w-3" />
         <span className="text-foreground">{humanizeKey(block.block_key)}</span>
       </nav>
@@ -287,7 +294,7 @@ export function ContentEditor({
               {block.locale.toUpperCase()}
             </span>
             {hasChanges && (
-              <Badge variant="secondary" className="text-xs">Unsaved changes</Badge>
+              <Badge variant="secondary" className="text-xs">{t("labels.unsavedChanges")}</Badge>
             )}
           </div>
         </div>
@@ -298,7 +305,7 @@ export function ContentEditor({
             className="gap-2"
           >
             <Sparkles className="h-4 w-4" />
-            AI Generate
+            {tContent("aiGenerate")}
           </Button>
           {otherLocales.length > 0 && (
             <Button
@@ -310,7 +317,7 @@ export function ContentEditor({
               className="gap-2"
             >
               <Languages className="h-4 w-4" />
-              Translate
+              {tContent("translate")}
             </Button>
           )}
         </div>
@@ -318,7 +325,7 @@ export function ContentEditor({
 
       <Card>
         <CardHeader>
-          <CardTitle>Editor</CardTitle>
+          <CardTitle>{tContent("editor")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {block.content_type === "rich_text" && (
@@ -327,7 +334,7 @@ export function ContentEditor({
 
           {block.content_type === "plain_text" && (
             <div className="space-y-2">
-              <Label>Plain Text</Label>
+              <Label>{t("labels.plainText")}</Label>
               <Textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
@@ -342,18 +349,18 @@ export function ContentEditor({
           {block.content_type === "image_url" && (
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Image URL</Label>
+                <Label>{t("labels.imageUrl")}</Label>
                 <Input
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  placeholder="https://..."
+                  placeholder={t("labels.urlPlaceholder")}
                 />
               </div>
               {content && (
                 <div className="relative rounded-md border p-4">
                   <img
                     src={content}
-                    alt="Preview"
+                    alt={t("labels.imagePreview")}
                     className="max-h-[400px] max-w-full rounded object-contain"
                   />
                   <div className="absolute bottom-2 right-2 flex gap-2">
@@ -362,12 +369,12 @@ export function ContentEditor({
                       size="sm"
                       className="gap-1"
                       onClick={() => {
-                        const url = prompt("Enter new image URL:");
+                        const url = prompt(t("labels.enterNewImageUrl"));
                         if (url) setContent(url);
                       }}
                     >
                       <Replace className="h-3 w-3" />
-                      Replace
+                      {t("actions.replace")}
                     </Button>
                     <Button
                       variant="ghost"
@@ -376,7 +383,7 @@ export function ContentEditor({
                       onClick={() => setContent("")}
                     >
                       <Trash2 className="h-3 w-3" />
-                      Remove
+                      {tc("remove")}
                     </Button>
                   </div>
                 </div>
@@ -391,7 +398,7 @@ export function ContentEditor({
           {block.content_type === "json" && block.block_key !== "resources_items" && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label>JSON</Label>
+                <Label>{t("labels.json")}</Label>
                 <Button
                   variant="outline"
                   size="sm"
@@ -401,7 +408,7 @@ export function ContentEditor({
                   {jsonValid ? (
                     <CheckCircle2 className="h-3 w-3 text-green-500" />
                   ) : null}
-                  Validate JSON
+                  {t("actions.validateJson")}
                 </Button>
               </div>
               <Textarea
@@ -419,7 +426,7 @@ export function ContentEditor({
               {jsonValid && (
                 <p className="text-sm text-green-600 flex items-center gap-1">
                   <CheckCircle2 className="h-3 w-3" />
-                  Valid JSON
+                  {t("labels.validJson")}
                 </p>
               )}
             </div>
@@ -433,7 +440,7 @@ export function ContentEditor({
           variant="ghost"
           onClick={() => {
             if (hasChanges) {
-              if (confirm("You have unsaved changes. Discard them?")) {
+              if (confirm(t("labels.confirmDiscard"))) {
                 router.back();
               }
             } else {
@@ -441,11 +448,11 @@ export function ContentEditor({
             }
           }}
         >
-          Discard Changes
+          {tContent("discardChanges")}
         </Button>
         <Button onClick={handleSave} disabled={loading}>
           {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Save
+          {tc("save")}
         </Button>
       </div>
 
@@ -455,20 +462,20 @@ export function ContentEditor({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5" />
-              AI Content Generation
+              {t("dialogs.aiTitle")}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Content Type</Label>
+              <Label>{t("dialogs.contentType")}</Label>
               <Select value={generateType} onValueChange={setGenerateType}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {contentTypeOptions.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
+                    <SelectItem key={opt} value={opt}>
+                      {t(`contentTypes.${opt}`)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -476,11 +483,11 @@ export function ContentEditor({
             </div>
             {generateType === "custom" && (
               <div className="space-y-2">
-                <Label>Describe what you need</Label>
+                <Label>{t("dialogs.describeNeed")}</Label>
                 <Textarea
                   value={customPrompt}
                   onChange={(e) => setCustomPrompt(e.target.value)}
-                  placeholder="E.g., a paragraph about our coaching methodology..."
+                  placeholder={t("dialogs.customPromptPlaceholder")}
                   className="min-h-[80px]"
                 />
               </div>
@@ -488,14 +495,14 @@ export function ContentEditor({
             {generatedContent && (
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-muted-foreground">Current Content</Label>
+                  <Label className="text-muted-foreground">{t("dialogs.currentContent")}</Label>
                   <div
                     className="prose prose-sm dark:prose-invert max-h-[300px] overflow-auto rounded-md border bg-muted/30 p-4"
                     dangerouslySetInnerHTML={{ __html: content }}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-primary">AI Generated</Label>
+                  <Label className="text-primary">{t("dialogs.aiGenerated")}</Label>
                   <div
                     className="prose prose-sm dark:prose-invert max-h-[300px] overflow-auto rounded-md border border-primary/30 bg-primary/5 p-4"
                     dangerouslySetInnerHTML={{ __html: generatedContent }}
@@ -511,9 +518,9 @@ export function ContentEditor({
                   {generating && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
-                  Regenerate
+                  {t("actions.regenerate")}
                 </Button>
-                <Button onClick={useGeneratedContent}>Use This</Button>
+                <Button onClick={useGeneratedContent}>{t("actions.useThis")}</Button>
               </>
             ) : (
               <>
@@ -521,13 +528,13 @@ export function ContentEditor({
                   variant="ghost"
                   onClick={() => setGenerateOpen(false)}
                 >
-                  Cancel
+                  {tc("cancel")}
                 </Button>
                 <Button onClick={handleGenerate} disabled={generating}>
                   {generating && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
-                  Generate
+                  {t("actions.generate")}
                 </Button>
               </>
             )}
@@ -541,20 +548,20 @@ export function ContentEditor({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Languages className="h-5 w-5" />
-              Translate Content
+              {t("dialogs.translateTitle")}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Source Language</Label>
+                <Label>{t("dialogs.sourceLanguage")}</Label>
                 <Input
                   value={block.locale.toUpperCase()}
                   disabled
                 />
               </div>
               <div className="space-y-2">
-                <Label>Target Language</Label>
+                <Label>{t("dialogs.targetLanguage")}</Label>
                 <Select value={targetLocale} onValueChange={setTargetLocale}>
                   <SelectTrigger>
                     <SelectValue />
@@ -572,14 +579,14 @@ export function ContentEditor({
             {translatedContent && (
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-muted-foreground">Original ({block.locale.toUpperCase()})</Label>
+                  <Label className="text-muted-foreground">{t("dialogs.original", { locale: block.locale.toUpperCase() })}</Label>
                   <div
                     className="prose prose-sm dark:prose-invert max-h-[300px] overflow-auto rounded-md border bg-muted/30 p-4"
                     dangerouslySetInnerHTML={{ __html: content }}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-primary">Translation ({targetLocale.toUpperCase()})</Label>
+                  <Label className="text-primary">{t("dialogs.translation", { locale: targetLocale.toUpperCase() })}</Label>
                   <div
                     className="prose prose-sm dark:prose-invert max-h-[300px] overflow-auto rounded-md border border-primary/30 bg-primary/5 p-4"
                     dangerouslySetInnerHTML={{ __html: translatedContent }}
@@ -595,10 +602,10 @@ export function ContentEditor({
                   {translating && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
-                  Retranslate
+                  {t("actions.retranslate")}
                 </Button>
                 <Button onClick={saveTranslation}>
-                  Save as {targetLocale.toUpperCase()}
+                  {t("actions.saveAs", { locale: targetLocale.toUpperCase() })}
                 </Button>
               </>
             ) : (
@@ -607,7 +614,7 @@ export function ContentEditor({
                   variant="ghost"
                   onClick={() => setTranslateOpen(false)}
                 >
-                  Cancel
+                  {tc("cancel")}
                 </Button>
                 <Button
                   onClick={handleTranslate}
@@ -616,7 +623,7 @@ export function ContentEditor({
                   {translating && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
-                  Translate
+                  {tContent("translate")}
                 </Button>
               </>
             )}

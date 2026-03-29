@@ -43,23 +43,27 @@ const LANGUAGE_NAMES: Record<string, string> = {
 };
 ---
 
-<header class="sticky top-0 z-30 bg-white/95 border-b border-border-subtle transition-all duration-250 ease-out backdrop-blur-md" id="main-header">
-  <div class="mx-auto max-w-[1200px] px-4 sm:px-6 flex items-center justify-between h-16">
+<header class="sticky top-0 z-30 bg-white/95 border-b border-border-subtle/80 backdrop-blur-md transition-all duration-300" id="main-header">
+  <div class="mx-auto max-w-[1200px] px-4 sm:px-6 flex items-center justify-between h-16 overflow-visible">
     <!-- Logo -->
-    <a href={`${prefix}/`} class="flex-shrink-0" aria-label={`${chapter.name} home`}>
+    <a href={`${prefix}/`} class="flex-shrink-0 flex items-center gap-2.5 h-full py-2" aria-label={`${chapter.name} home`}>
       {chapter.brand_logo_url ? (
         <img
           src={chapter.brand_logo_url}
           alt={chapter.name}
-          class="h-10 w-auto"
+          class="h-8 max-h-8 w-auto max-w-[160px] object-contain"
         />
       ) : (
-        <span
-          class="text-xl font-bold font-heading tracking-tight"
-          style={`color:${chapter.brand_primary_color}`}
-        >
-          {chapter.name}
-        </span>
+        <picture>
+          <source srcset="/brand/logo.webp" type="image/webp" />
+          <img
+            src="/brand/logo.png"
+            alt="WIAL"
+            class="h-8 max-h-8 w-auto max-w-[160px] object-contain"
+            loading="eager"
+            decoding="async"
+          />
+        </picture>
       )}
     </a>
 
@@ -69,31 +73,31 @@ const LANGUAGE_NAMES: Record<string, string> = {
         <a
           href={item.href}
           class:list={[
-            "px-2 py-2 text-sm font-medium transition-all duration-200 relative h-16 flex items-center whitespace-nowrap",
+            "px-2.5 py-2 text-[13px] font-medium transition-all duration-200 relative h-16 flex items-center whitespace-nowrap",
             isActive(item.href)
-              ? "text-brand-primary"
+              ? "text-brand-primary font-semibold"
               : "text-text-secondary hover:text-brand-primary",
           ]}
           aria-current={isActive(item.href) ? "page" : undefined}
         >
           {item.label}
           {isActive(item.href) && (
-            <span class="absolute bottom-0 left-0 right-0 h-[3px] bg-brand-accent rounded-t-full"></span>
+            <span class="absolute bottom-0 left-2 right-2 h-[3px] rounded-t-full" style="background: linear-gradient(90deg, var(--color-brand-primary), var(--color-brand-accent))"></span>
           )}
         </a>
       ))}
 
       {/* Language Switcher */}
       {activeLanguages.length > 1 && (
-        <div class="ml-4 flex items-center gap-1 border-l border-border-subtle pl-4 h-8">
+        <div class="ml-3 flex items-center gap-1 border-l border-border-subtle pl-3 h-8">
           {activeLanguages.map((lang) => (
             <a
               href={`/${lang}${pathWithoutLocale}`}
               class:list={[
-                "px-2 py-1 text-xs font-bold rounded transition-colors",
+                "px-2 py-1 text-xs font-bold rounded-md transition-all duration-150",
                 lang === locale
                   ? "bg-brand-primary text-white shadow-sm"
-                  : "text-text-secondary hover:text-brand-primary hover:bg-brand-primary-light",
+                  : "text-text-muted hover:text-brand-primary hover:bg-brand-primary-light",
               ]}
               aria-label={`Switch to ${lang}`}
               aria-current={lang === locale ? "true" : undefined}
@@ -117,11 +121,16 @@ const LANGUAGE_NAMES: Record<string, string> = {
         <span class="hamburger-line"></span>
         <span class="hamburger-line"></span>
       </label>
-      
+
       <div class="mobile-nav-overlay fixed inset-0 bg-black/20 backdrop-blur-sm z-40 opacity-0 pointer-events-none transition-opacity duration-300"></div>
-      
+
       <nav class="mobile-nav" aria-label="Mobile navigation">
-        <div class="flex flex-col gap-1">
+        {/* Mobile logo area */}
+        <div class="mb-6 pb-4 border-b border-border-subtle">
+          <p class="font-heading font-bold text-brand-primary text-sm">{chapter.name}</p>
+        </div>
+
+        <div class="flex flex-col gap-0.5">
           {navItems.map((item) => (
             <a
               href={item.href}
@@ -131,7 +140,7 @@ const LANGUAGE_NAMES: Record<string, string> = {
             </a>
           ))}
         </div>
-        
+
         {/* Mobile Language Switcher */}
         {activeLanguages.length > 1 && (
           <div class="flex items-center gap-3 mt-auto pt-8 border-t border-border-subtle">
@@ -172,7 +181,7 @@ const LANGUAGE_NAMES: Record<string, string> = {
 
   .hamburger-line {
     display: block;
-    width: 24px;
+    width: 22px;
     height: 2px;
     background-color: var(--color-text-primary, #1f1d1a);
     border-radius: 2px;
@@ -186,12 +195,12 @@ const LANGUAGE_NAMES: Record<string, string> = {
     bottom: 0;
     width: 85%;
     max-width: 320px;
-    background: white;
+    background: var(--color-warm-ivory, #faf8f5);
     z-index: 50;
     display: flex;
     flex-direction: column;
-    padding: 5rem 2rem 2rem;
-    box-shadow: -4px 0 25px rgba(0, 0, 0, 0.1);
+    padding: 5rem 1.75rem 2rem;
+    box-shadow: -8px 0 32px rgba(0, 0, 0, 0.08);
     transform: translateX(100%);
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     overflow-y: auto;
@@ -207,24 +216,24 @@ const LANGUAGE_NAMES: Record<string, string> = {
   }
 
   #nav-toggle:checked ~ label span:nth-child(1) {
-    transform: translateY(8px) rotate(45deg);
+    transform: translateY(7px) rotate(45deg);
   }
   #nav-toggle:checked ~ label span:nth-child(2) {
     opacity: 0;
     transform: translateX(10px);
   }
   #nav-toggle:checked ~ label span:nth-child(3) {
-    transform: translateY(-8px) rotate(-45deg);
+    transform: translateY(-7px) rotate(-45deg);
   }
 
   .mobile-nav a {
     font-family: var(--font-heading);
-    font-size: 1.125rem;
-    font-weight: 600;
+    font-size: 1rem;
+    font-weight: 500;
     color: var(--color-text-secondary, #6b6560);
     transition: all 0.2s;
-    padding: 0.75rem 1rem;
-    border-radius: 8px;
+    padding: 0.65rem 0.875rem;
+    border-radius: 10px;
     display: block;
     text-decoration: none;
   }
@@ -238,8 +247,9 @@ const LANGUAGE_NAMES: Record<string, string> = {
   .mobile-nav a[aria-current="page"] {
     color: var(--color-brand-primary, #1a7a8a);
     background-color: var(--color-brand-primary-light, rgba(26, 122, 138, 0.05));
+    font-weight: 600;
     border-left: 3px solid var(--color-brand-accent, #d4a900);
-    padding-left: calc(1rem - 3px);
+    padding-left: calc(0.875rem - 3px);
   }
 </style>
 
@@ -253,21 +263,18 @@ const LANGUAGE_NAMES: Record<string, string> = {
 
     if (window.scrollY > 30) {
       if (window.scrollY < lastScrollY) {
-        // Scrolling up
         header.style.transform = 'translateY(0)';
         header.style.background = 'white';
-        header.style.boxShadow = '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)';
+        header.style.boxShadow = '0 1px 3px 0 rgba(0, 0, 0, 0.06)';
       } else {
-        // Scrolling down
         header.style.transform = 'translateY(-100%)';
       }
     } else {
-      // Top of page
       header.style.transform = 'translateY(0)';
       header.style.background = 'rgba(255, 255, 255, 0.95)';
       header.style.boxShadow = 'none';
     }
-    
+
     lastScrollY = window.scrollY;
     ticking = false;
   }

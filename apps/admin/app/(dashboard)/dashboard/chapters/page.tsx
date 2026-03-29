@@ -17,6 +17,7 @@ import {
 import {
   Plus, Building2, MoreHorizontal, Eye, Pencil, Rocket, ShieldOff, ShieldCheck, Archive,
 } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 
 const statusVariant: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   active: "default",
@@ -24,17 +25,20 @@ const statusVariant: Record<string, "default" | "secondary" | "destructive" | "o
   archived: "outline",
 };
 
-function formatRelativeTime(dateStr: string) {
+function formatRelativeTime(
+  dateStr: string,
+  tc: (key: string, params?: Record<string, string | number | Date>) => string
+) {
   const date = new Date(dateStr);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   const diffMins = Math.floor(diffMs / 60000);
-  if (diffMins < 1) return "just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffMins < 1) return tc("justNow");
+  if (diffMins < 60) return tc("minsAgo", { count: diffMins });
   const diffHours = Math.floor(diffMins / 60);
-  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffHours < 24) return tc("hoursAgo", { count: diffHours });
   const diffDays = Math.floor(diffHours / 24);
-  return `${diffDays}d ago`;
+  return tc("daysAgo", { count: diffDays });
 }
 
 export default async function ChaptersPage({
@@ -42,6 +46,9 @@ export default async function ChaptersPage({
 }: {
   searchParams: Promise<{ status?: string; q?: string }>;
 }) {
+  const t = await getTranslations("chapters");
+  const tc = await getTranslations("common");
+  const tui = await getTranslations("ui.chaptersAdmin");
   const params = await searchParams;
   const user = await getAuthUser();
   if (!user || !isSuperAdmin(user.roles)) redirect("/dashboard");
@@ -80,15 +87,15 @@ export default async function ChaptersPage({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Chapters</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">{t("title")}</h1>
           <p className="text-muted-foreground">
-            Manage all WIAL chapters across the global network.
+            {tui("description")}
           </p>
         </div>
         <Button asChild>
           <Link href="/dashboard/chapters/new">
             <Plus className="mr-2 h-4 w-4" />
-            Create Chapter
+            {t("createNew")}
           </Link>
         </Button>
       </div>
@@ -100,11 +107,11 @@ export default async function ChaptersPage({
             type="text"
             name="q"
             defaultValue={params.q ?? ""}
-            placeholder="Search chapters..."
+            placeholder={tui("filters.searchPlaceholder")}
             className="h-9 rounded-full border bg-background px-4 text-sm w-[200px] focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
           <input type="hidden" name="status" value={params.status ?? "all"} />
-          <button type="submit" className="sr-only">Search</button>
+          <button type="submit" className="sr-only">{tc("search")}</button>
         </form>
         {["all", "active", "suspended", "archived"].map((s) => (
           <Link
@@ -116,7 +123,7 @@ export default async function ChaptersPage({
                 : "hover:bg-muted"
             }`}
           >
-            {s === "all" ? "All Status" : s}
+            {s === "all" ? tc("allStatus") : tui(`status.${s}`)}
           </Link>
         ))}
       </div>
@@ -127,12 +134,12 @@ export default async function ChaptersPage({
             <TableHeader>
               <TableRow>
                 <TableHead className="w-8" />
-                <TableHead>Name</TableHead>
-                <TableHead>Slug</TableHead>
-                <TableHead>Subdomain</TableHead>
-                <TableHead>Language</TableHead>
-                <TableHead className="text-right">Coaches</TableHead>
-                <TableHead>Last Deployed</TableHead>
+                <TableHead>{tui("table.name")}</TableHead>
+                <TableHead>{tui("table.slug")}</TableHead>
+                <TableHead>{tui("table.subdomain")}</TableHead>
+                <TableHead>{tui("table.language")}</TableHead>
+                <TableHead className="text-right">{tui("table.coaches")}</TableHead>
+                <TableHead>{tui("table.lastDeployed")}</TableHead>
                 <TableHead className="w-12" />
               </TableRow>
             </TableHeader>
@@ -166,7 +173,7 @@ export default async function ChaptersPage({
                       {(chapter.coaches as any)?.[0]?.count ?? 0}
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {lastDeploy ? formatRelativeTime(lastDeploy.date) : "Never"}
+                      {lastDeploy ? formatRelativeTime(lastDeploy.date, tc) : tui("labels.never")}
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>
@@ -179,13 +186,13 @@ export default async function ChaptersPage({
                           <DropdownMenuItem asChild>
                             <Link href={`/dashboard/chapters/${chapter.id}`} className="gap-2">
                               <Eye className="h-4 w-4" />
-                              View Chapter
+                              {tui("actions.viewChapter")}
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild>
                             <Link href={`/dashboard/chapters/${chapter.id}`} className="gap-2">
                               <Pencil className="h-4 w-4" />
-                              Edit Chapter
+                              {tui("actions.editChapter")}
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem
@@ -193,23 +200,23 @@ export default async function ChaptersPage({
                             disabled={!chapter.github_folder_path}
                           >
                             <Rocket className="h-4 w-4" />
-                            Trigger Deploy
+                            {tui("actions.triggerDeploy")}
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           {chapter.status === "active" ? (
                             <DropdownMenuItem className="gap-2 text-amber-600 focus:text-amber-600">
                               <ShieldOff className="h-4 w-4" />
-                              Suspend Chapter
+                              {tui("actions.suspendChapter")}
                             </DropdownMenuItem>
                           ) : chapter.status === "suspended" ? (
                             <DropdownMenuItem className="gap-2 text-green-600 focus:text-green-600">
                               <ShieldCheck className="h-4 w-4" />
-                              Activate Chapter
+                              {tui("actions.activateChapter")}
                             </DropdownMenuItem>
                           ) : null}
                           <DropdownMenuItem className="gap-2 text-destructive focus:text-destructive">
                             <Archive className="h-4 w-4" />
-                            Archive Chapter
+                            {tui("actions.archiveChapter")}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -223,14 +230,14 @@ export default async function ChaptersPage({
       ) : (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
           <Building2 className="h-12 w-12 text-muted-foreground" />
-          <h3 className="mt-4 text-lg font-semibold">No chapters yet</h3>
+          <h3 className="mt-4 text-lg font-semibold">{t("noChapters")}</h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            Create your first chapter to start building the global network.
+            {t("noChaptersDesc")}
           </p>
           <Button asChild className="mt-4">
             <Link href="/dashboard/chapters/new">
               <Plus className="mr-2 h-4 w-4" />
-              Create Chapter
+              {t("createNew")}
             </Link>
           </Button>
         </div>

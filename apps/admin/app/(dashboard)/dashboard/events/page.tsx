@@ -2,9 +2,12 @@ import { getAuthUser, isSuperAdmin } from "@/lib/auth";
 import { createClient } from "@repo/supabase/server";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
+import { getTranslations } from "next-intl/server";
 import { EventsClient } from "./events-client";
 
 export default async function EventsPage() {
+  const t = await getTranslations("events");
+  const tui = await getTranslations("ui.pageState");
   const user = await getAuthUser();
   if (!user) redirect("/login");
 
@@ -18,9 +21,9 @@ export default async function EventsPage() {
   if (!resolvedChapterId && !isAdmin) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-semibold tracking-tight">Events</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">{t("title")}</h1>
         <p className="text-muted-foreground">
-          Select a chapter to manage events.
+          {tui("selectChapterToManage", { subject: t("title").toLowerCase() })}
         </p>
       </div>
     );

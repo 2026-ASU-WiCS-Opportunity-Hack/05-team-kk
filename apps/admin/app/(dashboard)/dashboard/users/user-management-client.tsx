@@ -21,6 +21,7 @@ import {
 import { Avatar, AvatarFallback } from "@repo/ui/avatar";
 import { toast } from "sonner";
 import { Plus, Loader2, Trash2, Users, Mail } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 type RoleWithProfile = {
   id: string;
@@ -54,10 +55,10 @@ function getInitials(name: string | undefined | null): string {
 }
 
 const roleLabels: Record<string, string> = {
-  super_admin: "Super Admin",
-  chapter_lead: "Chapter Lead",
-  content_creator: "Content Creator",
-  coach: "Coach",
+  super_admin: "super_admin",
+  chapter_lead: "chapter_lead",
+  content_creator: "content_creator",
+  coach: "coach",
 };
 
 export function UserManagementClient({
@@ -72,14 +73,22 @@ export function UserManagementClient({
   isSuperAdmin: boolean;
 }) {
   const router = useRouter();
+  const t = useTranslations("users");
+  const tui = useTranslations("ui.users");
+  const tc = useTranslations("common");
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState("coach");
   const [inviteLoading, setInviteLoading] = useState(false);
 
+  const roleLabel = (role: string) =>
+    tui.has(`roles.${roleLabels[role] ?? role}`)
+      ? tui(`roles.${roleLabels[role] ?? role}`)
+      : role;
+
   async function handleInvite() {
     if (!chapterId) {
-      toast.error("Select a chapter first");
+      toast.error(tui("errors.selectChapterFirst"));
       return;
     }
     setInviteLoading(true);
@@ -98,7 +107,7 @@ export function UserManagementClient({
     }).select().single();
 
     if (error || !invitation) {
-      toast.error(error?.message ?? "Failed to create invitation");
+      toast.error(error?.message ?? tui("errors.createInvitationFailed"));
       setInviteLoading(false);
       return;
     }
@@ -119,7 +128,7 @@ export function UserManagementClient({
       console.warn("Failed to send invitation email");
     }
 
-    toast.success(`Invitation sent to ${inviteEmail}`);
+    toast.success(tui("messages.invitationSent", { email: inviteEmail }));
     setInviteOpen(false);
     setInviteEmail("");
     router.refresh();
@@ -132,7 +141,7 @@ export function UserManagementClient({
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Invitation revoked");
+      toast.success(tui("messages.invitationRevoked"));
       router.refresh();
     }
   }
@@ -141,46 +150,46 @@ export function UserManagementClient({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Users</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">{t("title")}</h1>
           <p className="text-muted-foreground">
-            Manage team members and invitations.
+            {tui("description")}
           </p>
         </div>
         <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              Send Invite
+              {t("sendInvite")}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Invite a Team Member</DialogTitle>
+              <DialogTitle>{tui("inviteDialog.title")}</DialogTitle>
               <DialogDescription>
-                Send an invitation email to join this chapter.
+                {tui("inviteDialog.description")}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Email</Label>
+                <Label>{tui("table.email")}</Label>
                 <Input
                   type="email"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
-                  placeholder="user@example.com"
+                  placeholder={tui("inviteDialog.emailPlaceholder")}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Role</Label>
+                <Label>{tui("table.role")}</Label>
                 <Select value={inviteRole} onValueChange={setInviteRole}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="coach">Coach</SelectItem>
-                    <SelectItem value="content_creator">Content Creator</SelectItem>
+                    <SelectItem value="coach">{tui("roles.coach")}</SelectItem>
+                    <SelectItem value="content_creator">{tui("roles.contentCreator")}</SelectItem>
                     {isSuperAdmin && (
-                      <SelectItem value="chapter_lead">Chapter Lead</SelectItem>
+                      <SelectItem value="chapter_lead">{tui("roles.chapterLead")}</SelectItem>
                     )}
                   </SelectContent>
                 </Select>
@@ -188,11 +197,11 @@ export function UserManagementClient({
             </div>
             <DialogFooter>
               <Button variant="ghost" onClick={() => setInviteOpen(false)}>
-                Cancel
+                {tc("cancel")}
               </Button>
               <Button onClick={handleInvite} disabled={inviteLoading || !inviteEmail}>
                 {inviteLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Send Invitation
+                {tui("inviteDialog.send")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -201,9 +210,9 @@ export function UserManagementClient({
 
       <Tabs defaultValue="members">
         <TabsList>
-          <TabsTrigger value="members">Members</TabsTrigger>
+          <TabsTrigger value="members">{t("members")}</TabsTrigger>
           <TabsTrigger value="invitations">
-            Invitations
+            {t("invitations")}
             {invitations.filter((i) => i.status === "pending").length > 0 && (
               <Badge variant="secondary" className="ml-2">
                 {invitations.filter((i) => i.status === "pending").length}
@@ -216,9 +225,9 @@ export function UserManagementClient({
           {roles.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
               <Users className="h-12 w-12 text-muted-foreground" />
-              <h3 className="mt-4 text-lg font-semibold">No members yet</h3>
+              <h3 className="mt-4 text-lg font-semibold">{tui("empty.noMembers")}</h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                Invite team members to collaborate on this chapter.
+                {tui("empty.noMembersDesc")}
               </p>
             </div>
           ) : (
@@ -227,10 +236,10 @@ export function UserManagementClient({
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-12" />
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Joined</TableHead>
+                  <TableHead>{tui("table.name")}</TableHead>
+                  <TableHead>{tui("table.email")}</TableHead>
+                  <TableHead>{tui("table.role")}</TableHead>
+                  <TableHead>{tui("table.joined")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -251,7 +260,7 @@ export function UserManagementClient({
                         {(r.profiles as any)?.email ?? "\u2014"}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">{roleLabels[r.role] ?? r.role}</Badge>
+                        <Badge variant="outline">{roleLabel(r.role)}</Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {new Date(r.created_at).toLocaleDateString()}
@@ -269,9 +278,9 @@ export function UserManagementClient({
           {invitations.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
               <Mail className="h-12 w-12 text-muted-foreground" />
-              <h3 className="mt-4 text-lg font-semibold">No invitations yet</h3>
+              <h3 className="mt-4 text-lg font-semibold">{tui("empty.noInvitations")}</h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                Send an invite to add team members to this chapter.
+                {tui("empty.noInvitationsDesc")}
               </p>
             </div>
           ) : (
@@ -279,12 +288,12 @@ export function UserManagementClient({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Invited By</TableHead>
-                  <TableHead>Sent Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Expires</TableHead>
+                  <TableHead>{tui("table.email")}</TableHead>
+                  <TableHead>{tui("table.role")}</TableHead>
+                  <TableHead>{tui("table.invitedBy")}</TableHead>
+                  <TableHead>{tui("table.sentDate")}</TableHead>
+                  <TableHead>{tui("table.status")}</TableHead>
+                  <TableHead>{tui("table.expires")}</TableHead>
                   <TableHead className="w-12" />
                 </TableRow>
               </TableHeader>
@@ -294,7 +303,7 @@ export function UserManagementClient({
                     <TableRow key={inv.id}>
                       <TableCell className="font-medium">{inv.email}</TableCell>
                       <TableCell>
-                        <Badge variant="outline">{roleLabels[inv.role] ?? inv.role}</Badge>
+                        <Badge variant="outline">{roleLabel(inv.role)}</Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {(inv.inviter as any)?.full_name ?? "\u2014"}
@@ -312,7 +321,7 @@ export function UserManagementClient({
                                 : "destructive"
                           }
                         >
-                          {inv.status}
+                          {tui(`status.${inv.status}`)}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground">

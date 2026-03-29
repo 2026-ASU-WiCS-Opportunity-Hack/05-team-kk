@@ -5,6 +5,7 @@ import { createClient } from "@repo/supabase/client";
 import { Input } from "@repo/ui/input";
 import { Loader2, Search, X, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 interface SearchResult {
   id: string;
@@ -27,6 +28,7 @@ const certBadgeClass: Record<string, string> = {
 };
 
 export function CoachSearch({ chapterId }: { chapterId?: string }) {
+  const t = useTranslations("ui.coachSearch");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -98,7 +100,7 @@ export function CoachSearch({ chapterId }: { chapterId?: string }) {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search coaches with natural language..."
+          placeholder={t("placeholder")}
           value={query}
           onChange={(e) => handleChange(e.target.value)}
           className="pl-10 pr-10"
@@ -116,7 +118,7 @@ export function CoachSearch({ chapterId }: { chapterId?: string }) {
       {query && (
         <p className="flex items-center gap-1.5 text-xs text-muted-foreground italic">
           <Sparkles className="h-3 w-3" />
-          Semantic search enabled — try natural language queries in any language
+          {t("semanticHint")}
         </p>
       )}
 
@@ -130,13 +132,13 @@ export function CoachSearch({ chapterId }: { chapterId?: string }) {
         <div className="space-y-2">
           {results.length === 0 ? (
             <p className="text-center py-8 text-muted-foreground">
-              No coaches matched your search. Try different words.
+              {t("noResults")}
             </p>
           ) : (
             <>
               <p className="text-xs text-muted-foreground">
-                {results.length} result{results.length !== 1 ? "s" : ""}{" "}
-                {mode === "semantic" && "by relevance"}
+                {t("resultCount", { count: results.length })}
+                {mode === "semantic" && ` ${t("byRelevance")}`}
               </p>
               <div className="rounded-md border divide-y">
                 {results.map((coach) => {

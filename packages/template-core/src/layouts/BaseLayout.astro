@@ -28,6 +28,8 @@ const secondaryColor = chapter.brand_secondary_color;
 const accentColor = chapter.brand_accent_color;
 const brandFont = chapter.brand_font || "Lexend";
 const logoUrl = chapter.brand_logo_url;
+const fallbackLogoUrl = "/brand/logo.webp";
+const ogImage = logoUrl || fallbackLogoUrl;
 
 // Derived colors
 const primaryDark = derivePrimaryDark(primaryColor);
@@ -66,7 +68,14 @@ const cssVars = [
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={metaDescription} />
     <meta property="og:type" content="website" />
-    {logoUrl && <meta property="og:image" content={logoUrl} />}
+    <meta property="og:image" content={ogImage} />
+
+    <!-- Brand icons -->
+    <link rel="icon" href="/brand/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/brand/favicon-16x16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/brand/favicon-32x32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/brand/apple-touch-icon.png" />
+    <link rel="manifest" href="/brand/site.webmanifest" />
 
     <!-- Save-Data detection: add save-data class to html for CSS text-only mode -->
     <script is:inline>

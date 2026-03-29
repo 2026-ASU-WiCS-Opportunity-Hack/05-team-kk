@@ -1,9 +1,12 @@
 import { getAuthUser, isSuperAdmin, getUserRoleForChapter } from "@/lib/auth";
 import { createClient } from "@repo/supabase/server";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { AiEditorClient } from "./ai-editor-client";
 
 export default async function AiEditorPage() {
+  const t = await getTranslations("aiEditor");
+  const tui = await getTranslations("ui.pageState");
   const user = await getAuthUser();
   if (!user) redirect("/login");
 
@@ -19,9 +22,9 @@ export default async function AiEditorPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">AI Editor</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">{t("title")}</h1>
           <p className="text-muted-foreground">
-            Select a chapter to start editing with AI.
+            {tui("selectChapterToStartAiEditing")}
           </p>
         </div>
       </div>

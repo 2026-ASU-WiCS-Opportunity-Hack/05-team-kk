@@ -15,6 +15,7 @@ export function BrandingPreview({ name, primaryColor, secondaryColor, accentColo
   // Use a fallback font if empty
   const fontFamily = font || "Lexend, sans-serif";
   const t = useTranslations("dashboard");
+  const tui = useTranslations("ui.brandingPreview");
   
   return (
     <div className="flex flex-col gap-2">
@@ -50,11 +51,11 @@ export function BrandingPreview({ name, primaryColor, secondaryColor, accentColo
               <div className="w-14 h-14 rounded-full mx-auto mb-2 text-white flex items-center justify-center text-sm font-bold shadow-sm border-2 border-white" style={{ backgroundColor: '#22c55e' }}>
                 JD
               </div>
-              <div className="font-semibold text-sm mb-1">Jane Doe</div>
+              <div className="font-semibold text-sm mb-1">{tui("sampleCoachName")}</div>
               <span className="inline-flex px-2 py-0.5 text-[10px] font-medium rounded-full border-l-2 mb-3 font-sans" style={{ borderColor: '#22c55e', backgroundColor: '#22c55e15', color: '#166534' }}>SALC</span>
               <div className="text-[10px] text-slate-500 font-sans mb-3 flex justify-center gap-1">
-                <span className="bg-slate-100 px-1.5 py-0.5 rounded">Leadership</span>
-                <span className="bg-slate-100 px-1.5 py-0.5 rounded">Exec</span>
+                <span className="bg-slate-100 px-1.5 py-0.5 rounded">{tui("sampleTagLeadership")}</span>
+                <span className="bg-slate-100 px-1.5 py-0.5 rounded">{tui("sampleTagExec")}</span>
               </div>
               <div className="text-xs font-medium flex items-center justify-center gap-1" style={{ color: primaryColor }}>
                 {t("viewProfile")}

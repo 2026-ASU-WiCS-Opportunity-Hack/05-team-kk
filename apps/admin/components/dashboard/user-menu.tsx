@@ -14,10 +14,14 @@ import { Avatar, AvatarFallback } from "@repo/ui/avatar";
 import { useAuth } from "@/components/providers/auth-provider";
 import { LogOut, User } from "lucide-react";
 import { Badge } from "@repo/ui/badge";
+import { useTranslations } from "next-intl";
 
 export function UserMenu() {
   const { user } = useAuth();
   const router = useRouter();
+  const t = useTranslations("auth");
+  const tn = useTranslations("nav");
+  const tui = useTranslations("ui");
 
   if (!user) return null;
 
@@ -29,9 +33,9 @@ export function UserMenu() {
     .toUpperCase();
 
   const primaryRole = user.roles[0]?.role ?? "user";
-  const roleLabel = primaryRole
-    .replace("_", " ")
-    .replace(/\b\w/g, (l) => l.toUpperCase());
+  const roleLabel = tui.has(`roleLabels.${primaryRole}`)
+    ? tui(`roleLabels.${primaryRole}`)
+    : primaryRole.replace("_", " ").replace(/\b\w/g, (l) => l.toUpperCase());
 
   async function handleLogout() {
     const supabase = createClient();
@@ -62,7 +66,7 @@ export function UserMenu() {
           onClick={() => router.push("/dashboard/profile")}
         >
           <User className="mr-2 h-4 w-4" />
-          My Profile
+          {tn("myProfile")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
@@ -70,7 +74,7 @@ export function UserMenu() {
           className="text-destructive focus:text-destructive"
         >
           <LogOut className="mr-2 h-4 w-4" />
-          Sign Out
+          {t("signOut")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -73,7 +73,18 @@
     "welcomeTo": "Bienvenue sur",
     "empoweringLeaders": "Donner les moyens aux dirigeants grâce à l'apprentissage par l'action et à la connexion mondiale.",
     "getStarted": "Commencer",
-    "viewProfile": "Voir le Profil"
+    "viewProfile": "Voir le Profil",
+    "countries": {
+      "usa": "États-Unis",
+      "nigeria": "Nigéria",
+      "brazil": "Brésil",
+      "germany": "Allemagne",
+      "vietnam": "Vietnam",
+      "philippines": "Philippines",
+      "india": "Inde",
+      "kenya": "Kenya",
+      "southKorea": "Corée du Sud"
+    }
   },
   "chapters": {
     "title": "Chapitres",
@@ -121,7 +132,9 @@
     "webinar": "Webinaire",
     "virtual": "Virtuel",
     "unlimited": "Illimité",
-    "comingUp": "Bientôt"
+    "comingUp": "Bientôt",
+    "date": "Date",
+    "editEvent": "Edit Event"
   },
   "clients": {
     "title": "Organisations Clientes",
@@ -280,5 +293,652 @@
     "url": "URL *",
     "type": "Type",
     "editResource": "Modifier la Ressource"
+  },
+  "ui": {
+    "fields": {
+      "email": "Email",
+      "password": "Password",
+      "confirmPassword": "Confirm Password",
+      "fullName": "Full Name",
+      "emailPlaceholder": "you@example.com"
+    },
+    "actions": {
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "changeLanguage": "Change language",
+      "notifications": "Notifications",
+      "switchToMode": "Switch to {mode} mode",
+      "toggleTheme": "Toggle theme"
+    },
+    "labels": {
+      "global": "Global",
+      "dark": "dark",
+      "light": "light"
+    },
+    "errors": {
+      "networkTryAgain": "Network error. Please try again."
+    },
+    "roleLabels": {
+      "super_admin": "Super Admin",
+      "chapter_lead": "Chapter Lead",
+      "content_creator": "Content Creator",
+      "coach": "Coach",
+      "user": "User"
+    },
+    "signup": {
+      "title": "Join {chapter}",
+      "asRole": "as a",
+      "actions": {
+        "createAccount": "Create Account"
+      },
+      "roles": {
+        "chapterLead": "Chapter Lead",
+        "contentCreator": "Content Creator",
+        "coach": "Coach"
+      },
+      "labels": {
+        "unknownChapter": "Unknown Chapter"
+      },
+      "errors": {
+        "noToken": "No invitation token provided.",
+        "expired": "This invitation has expired or is no longer valid.",
+        "passwordMismatch": "Passwords do not match",
+        "passwordLength": "Password must be at least 8 characters",
+        "createAccountFailed": "Failed to create account"
+      },
+      "messages": {
+        "accountCreated": "Account created! Please sign in.",
+        "validatingInvitation": "Validating your invitation...",
+        "requestNewInvite": "Please contact the person who invited you for a new link."
+      }
+    },
+    "resources": {
+      "noResourcesHint": "No resources yet. Add links to documents, videos, and articles.",
+      "urlPlaceholder": "https://...",
+      "typeLabels": {
+        "pdf": "PDF",
+        "video": "Video",
+        "link": "Link",
+        "article": "Article"
+      }
+    },
+    "tiptap": {
+      "urlPrompt": "URL",
+      "bold": "Bold",
+      "italic": "Italic",
+      "heading2": "Heading 2",
+      "heading3": "Heading 3",
+      "heading4": "Heading 4",
+      "bulletList": "Bullet List",
+      "orderedList": "Ordered List",
+      "insertLink": "Insert Link",
+      "undo": "Undo",
+      "redo": "Redo"
+    },
+    "brandingPreview": {
+      "sampleCoachName": "Jane Doe",
+      "sampleTagLeadership": "Leadership",
+      "sampleTagExec": "Exec"
+    },
+    "pageState": {
+      "selectChapterToManage": "Select a chapter to manage {subject}.",
+      "chapterNotFound": "Chapter not found.",
+      "selectChapterToStartAiEditing": "Select a chapter to start editing with AI."
+    },
+    "users": {
+      "description": "Manage team members and invitations.",
+      "roles": {
+        "super_admin": "Super Admin",
+        "chapter_lead": "Chapter Lead",
+        "content_creator": "Content Creator",
+        "coach": "Coach"
+      },
+      "status": {
+        "pending": "Pending",
+        "accepted": "Accepted",
+        "revoked": "Revoked"
+      },
+      "errors": {
+        "selectChapterFirst": "Select a chapter first",
+        "createInvitationFailed": "Failed to create invitation"
+      },
+      "messages": {
+        "invitationSent": "Invitation sent to {email}",
+        "invitationRevoked": "Invitation revoked"
+      },
+      "inviteDialog": {
+        "title": "Invite a Team Member",
+        "description": "Send an invitation email to join this chapter.",
+        "emailPlaceholder": "user@example.com",
+        "send": "Send Invitation"
+      },
+      "empty": {
+        "noMembers": "No members yet",
+        "noMembersDesc": "Invite team members to collaborate on this chapter.",
+        "noInvitations": "No invitations yet",
+        "noInvitationsDesc": "Send an invite to add team members to this chapter."
+      },
+      "table": {
+        "name": "Name",
+        "email": "Email",
+        "role": "Role",
+        "joined": "Joined",
+        "invitedBy": "Invited By",
+        "sentDate": "Sent Date",
+        "status": "Status",
+        "expires": "Expires"
+      }
+    },
+    "events": {
+      "messages": {
+        "eventUpdated": "Event updated.",
+        "eventCreated": "Event created.",
+        "eventDeleted": "Event deleted."
+      },
+      "table": {
+        "registrations": "Registrations",
+        "chapter": "Chapter"
+      },
+      "labels": {
+        "open": "Open",
+        "urlPlaceholder": "https://...",
+        "cityCountry": "City, Country"
+      }
+    },
+    "aiEditor": {
+      "errors": {
+        "networkTryAgain": "Network error. Please try again."
+      },
+      "actions": {
+        "refreshPreview": "Refresh preview"
+      },
+      "labels": {
+        "previewFrameTitle": "AI Edit Preview",
+        "previewWillAppearWhenReady": "Preview will appear here when ready",
+        "date": "Date",
+        "noPromptsSent": "No prompts sent"
+      }
+    },
+    "deployments": {
+      "errors": {
+        "networkTryAgain": "Network error. Please try again."
+      },
+      "labels": {
+        "inProgress": "In progress",
+        "minutesSeconds": "{mins}m {secs}s",
+        "seconds": "{secs}s",
+        "system": "System",
+        "aiEditor": "AI Editor"
+      }
+    },
+    "settings": {
+      "messages": {
+        "brandingSaved": "Branding saved.",
+        "contactSaved": "Contact information saved.",
+        "languagesUpdated": "Languages updated.",
+        "aiSettingsSaved": "AI settings saved."
+      },
+      "status": {
+        "active": "Active",
+        "suspended": "Suspended",
+        "archived": "Archived"
+      }
+    },
+    "coachSearch": {
+      "placeholder": "Search coaches with natural language...",
+      "semanticHint": "Semantic search enabled — try natural language queries in any language",
+      "noResults": "No coaches matched your search. Try different words.",
+      "resultCount": "{count, plural, one {# result} other {# results}}",
+      "byRelevance": "by relevance"
+    },
+    "coachesPage": {
+      "filters": {
+        "allLevels": "All Levels",
+        "allLanguages": "All Languages",
+        "showingAll": "Showing All",
+        "showInactive": "Show Inactive"
+      },
+      "table": {
+        "name": "Name",
+        "specializations": "Specializations",
+        "languages": "Languages",
+        "hours": "Hours",
+        "chapter": "Chapter"
+      },
+      "labels": {
+        "pendingApproval": "Pending Approval"
+      },
+      "actions": {
+        "viewProfile": "View Profile",
+        "sendInvitation": "Send Invitation",
+        "activate": "Activate",
+        "deactivate": "Deactivate"
+      }
+    },
+    "coachForm": {
+      "introAdd": "Add a new coach to the chapter roster.",
+      "titles": {
+        "editCoach": "Edit Coach",
+        "coachProfile": "Coach Profile"
+      },
+      "sections": {
+        "personalInfo": "Personal Information",
+        "professionalDetails": "Professional Details",
+        "locationContact": "Location & Contact"
+      },
+      "fields": {
+        "fullName": "Full Name",
+        "fullNameRequired": "Full Name *",
+        "emailOptionalInvite": "Email (optional — for invitation)",
+        "bio": "Bio",
+        "certificationLevel": "Certification Level",
+        "certificationLevelRequired": "Certification Level *",
+        "hoursLogged": "Hours Logged",
+        "activeInDirectory": "Active in directory",
+        "specializations": "Specializations",
+        "languages": "Languages",
+        "typeAndPressEnter": "Type and press Enter",
+        "recertificationDueDate": "Recertification Due Date",
+        "city": "City",
+        "country": "Country",
+        "contactEmail": "Contact Email",
+        "contactPhone": "Contact Phone",
+        "website": "Website",
+        "websitePlaceholder": "https://"
+      },
+      "warnings": {
+        "chapterLeadOnly": "Only your chapter lead can change this."
+      },
+      "labels": {
+        "overdue": "Overdue",
+        "dueInDays": "Due in {days} days",
+        "days": "{days} days",
+        "notSet": "Not set"
+      },
+      "messages": {
+        "coachAdded": "Coach \"{name}\" added successfully.",
+        "coachUpdated": "Coach updated successfully."
+      },
+      "errors": {
+        "noChapterSelected": "No chapter selected"
+      }
+    },
+    "chaptersAdmin": {
+      "description": "Manage all WIAL chapters across the global network.",
+      "filters": {
+        "searchPlaceholder": "Search chapters..."
+      },
+      "status": {
+        "active": "active",
+        "suspended": "suspended",
+        "archived": "archived"
+      },
+      "table": {
+        "name": "Name",
+        "slug": "Slug",
+        "subdomain": "Subdomain",
+        "language": "Language",
+        "coaches": "Coaches",
+        "lastDeployed": "Last Deployed"
+      },
+      "labels": {
+        "never": "Never"
+      },
+      "actions": {
+        "viewChapter": "View Chapter",
+        "editChapter": "Edit Chapter",
+        "triggerDeploy": "Trigger Deploy",
+        "suspendChapter": "Suspend Chapter",
+        "activateChapter": "Activate Chapter",
+        "archiveChapter": "Archive Chapter"
+      }
+    },
+    "chapterForm": {
+      "titles": {
+        "createChapter": "Create New Chapter",
+        "editChapter": "Edit {name}"
+      },
+      "intro": "Set up a new WIAL chapter with branding and contact info.",
+      "editIntro": "Update chapter settings, branding, and contact info.",
+      "sections": {
+        "basicInfo": "Basic Information",
+        "branding": "Branding",
+        "contactInfo": "Contact Information",
+        "chapterLead": "Chapter Lead"
+      },
+      "fields": {
+        "chapterName": "Chapter Name",
+        "chapterNameRequired": "Chapter Name *",
+        "chapterNamePlaceholder": "WIAL Nigeria",
+        "slug": "Slug",
+        "status": "Status",
+        "defaultLanguage": "Default Language",
+        "primaryColor": "Primary Color",
+        "secondaryColor": "Secondary Color",
+        "accentColor": "Accent Color",
+        "font": "Font",
+        "contactEmail": "Email",
+        "contactPhone": "Phone",
+        "contactAddress": "Address",
+        "chapterLeadEmail": "Chapter Lead Email",
+        "chapterLeadEmailPlaceholder": "lead@example.com",
+        "chapterLeadHint": "An invitation will be sent to this email."
+      },
+      "status": {
+        "active": "Active",
+        "suspended": "Suspended",
+        "archived": "Archived"
+      },
+      "actions": {
+        "provisionSite": "Provision Site"
+      },
+      "warnings": {
+        "provisioningFailed": "Chapter created but Cloudflare provisioning failed. You can retry from the edit page.",
+        "provisionTitle": "Cloudflare project not provisioned",
+        "provisionDescription": "This chapter does not have a live website yet. Provision a Cloudflare Pages project to deploy the site."
+      },
+      "errors": {
+        "createChapterFailed": "Failed to create chapter",
+        "provisioningFailed": "Provisioning failed",
+        "networkProvisioning": "Network error during provisioning"
+      },
+      "messages": {
+        "chapterCreated": "Chapter \"{name}\" created successfully.",
+        "chapterUpdated": "Chapter updated successfully.",
+        "provisionSuccess": "Cloudflare project provisioned successfully."
+      }
+    },
+    "contentPage": {
+      "selectChapter": "Select a chapter to manage content.",
+      "description": "Manage content blocks for your chapter website.",
+      "untranslatedCount": "{count} untranslated",
+      "notCreatedForLocale": "Not yet created for {locale}",
+      "groups": {
+        "landingPage": "Landing Page",
+        "aboutPage": "About Page",
+        "actionLearningPage": "Action Learning Page",
+        "certification": "Certification",
+        "coachDirectory": "Coach Directory",
+        "testimonialsPage": "Testimonials Page",
+        "eventsPage": "Events Page",
+        "resourcesPage": "Resources Page",
+        "contactPage": "Contact Page",
+        "membershipPage": "Membership Page",
+        "headerNavigation": "Header Navigation",
+        "footer": "Footer",
+        "other": "Other"
+      },
+      "empty": {
+        "noBlocks": "No content blocks yet",
+        "noBlocksDesc": "Create your first content block to start building your chapter website."
+      }
+    },
+    "contentNew": {
+      "intro": "Add a new content block for your chapter website.",
+      "sections": {
+        "blockSettings": "Block Settings"
+      },
+      "fields": {
+        "blockKeyRequired": "Block Key *",
+        "blockKeyPlaceholder": "e.g. hero_title, about_body",
+        "blockKeyHint": "Use snake_case. Common prefixes: hero_, about_, al_, contact_, join_, nav_, footer_",
+        "contentType": "Content Type",
+        "locale": "Locale",
+        "initialContent": "Initial Content",
+        "initialContentPlaceholder": "Optional initial content"
+      },
+      "types": {
+        "richText": "Rich Text",
+        "plainText": "Plain Text",
+        "imageUrl": "Image URL",
+        "json": "JSON"
+      },
+      "actions": {
+        "createBlock": "Create Block"
+      },
+      "errors": {
+        "noChapterSelected": "No chapter selected"
+      },
+      "messages": {
+        "blockCreated": "Content block created."
+      }
+    },
+    "contentEditor": {
+      "groups": {
+        "landingPage": "Landing Page",
+        "aboutPage": "About Page",
+        "actionLearningPage": "Action Learning Page",
+        "certification": "Certification",
+        "coachDirectory": "Coach Directory",
+        "testimonialsPage": "Testimonials Page",
+        "eventsPage": "Events Page",
+        "resourcesPage": "Resources Page",
+        "contactPage": "Contact Page",
+        "membershipPage": "Membership Page",
+        "headerNavigation": "Header Navigation",
+        "footer": "Footer",
+        "other": "Other"
+      },
+      "contentTypes": {
+        "welcome": "Welcome / Hero text",
+        "about": "About page",
+        "coach_program": "Coach program description",
+        "mission": "Mission statement",
+        "join": "Join / Membership pitch",
+        "custom": "Custom"
+      },
+      "errors": {
+        "generationFailed": "Generation failed",
+        "networkGeneration": "Network error during generation",
+        "translationFailed": "Translation failed",
+        "networkTranslation": "Network error during translation"
+      },
+      "messages": {
+        "contentSaved": "Content saved.",
+        "generatedApplied": "Generated content applied. Review and save when ready.",
+        "translationSaved": "Translation saved for {locale}."
+      },
+      "labels": {
+        "unsavedChanges": "Unsaved changes",
+        "plainText": "Plain Text",
+        "imageUrl": "Image URL",
+        "imagePreview": "Aperçu de l'image",
+        "urlPlaceholder": "https://...",
+        "enterNewImageUrl": "Enter new image URL:",
+        "json": "JSON",
+        "validJson": "Valid JSON",
+        "confirmDiscard": "You have unsaved changes. Discard them?"
+      },
+      "actions": {
+        "replace": "Replace",
+        "validateJson": "Validate JSON",
+        "regenerate": "Regenerate",
+        "useThis": "Use This",
+        "generate": "Generate",
+        "retranslate": "Retranslate",
+        "saveAs": "Save as {locale}"
+      },
+      "dialogs": {
+        "aiTitle": "AI Content Generation",
+        "contentType": "Content Type",
+        "describeNeed": "Describe what you need",
+        "customPromptPlaceholder": "E.g., a paragraph about our coaching methodology...",
+        "currentContent": "Current Content",
+        "aiGenerated": "AI Generated",
+        "translateTitle": "Translate Content",
+        "sourceLanguage": "Source Language",
+        "targetLanguage": "Target Language",
+        "original": "Original ({locale})",
+        "translation": "Translation ({locale})"
+      }
+    },
+    "testimonials": {
+      "messages": {
+        "updated": "Testimonial updated.",
+        "added": "Testimonial added.",
+        "deleted": "Testimonial deleted."
+      },
+      "errors": {
+        "reorderFailed": "Failed to reorder."
+      },
+      "table": {
+        "quote": "Quote",
+        "author": "Author",
+        "featured": "Featured"
+      },
+      "actions": {
+        "edit": "Edit Testimonial"
+      },
+      "fields": {
+        "quoteRequired": "Quote *",
+        "authorNameRequired": "Author Name *",
+        "authorTitle": "Author Title / Organization",
+        "authorPhotoUrl": "Author Photo URL",
+        "authorPhotoPreview": "Aperçu de la photo de l'auteur",
+        "urlPlaceholder": "https://...",
+        "sortOrder": "Sort Order"
+      }
+    },
+    "analytics": {
+      "descriptionGlobal": "Platform-wide traffic and engagement metrics.",
+      "descriptionChapter": "Website traffic and engagement metrics for your chapter.",
+      "comingSoonTitle": "Coming Soon",
+      "comingSoonDescription": "Detailed analytics powered by Cloudflare Analytics API is under development. The data below is sample data for preview purposes.",
+      "cards": {
+        "pageViews": "Page Views",
+        "uniqueVisitors": "Unique Visitors",
+        "contactSubmissions": "Contact Submissions",
+        "eventRegistrations": "Event Registrations",
+        "last30Days": "Last 30 days"
+      },
+      "traffic": {
+        "title": "Website Traffic",
+        "comingSoon": "Traffic chart coming soon",
+        "poweredBy": "Powered by Cloudflare Analytics"
+      },
+      "topPages": {
+        "title": "Top Pages",
+        "pages": {
+          "landingPage": "Landing Page",
+          "coachDirectory": "Coach Directory",
+          "about": "About",
+          "events": "Events",
+          "contact": "Contact",
+          "testimonials": "Testimonials",
+          "resources": "Resources",
+          "membership": "Join / Membership"
+        }
+      }
+    },
+    "payments": {
+      "selectChapter": "Select a chapter to view payments.",
+      "description": "Track payments and manage dues collection.",
+      "comingSoonTitle": "Coming Soon",
+      "comingSoonDescription": "Payment processing via Stripe Connect and PayPal is under development. The data below is sample data for preview purposes.",
+      "cards": {
+        "totalCollected": "Total Collected",
+        "allTime": "All time",
+        "outstanding": "Outstanding",
+        "pendingPayments": "Pending payments",
+        "thisMonth": "This Month",
+        "monthMarch2026": "March 2026"
+      },
+      "actions": {
+        "connectStripe": "Connect Stripe (Coming Soon)",
+        "connectPaypal": "Connect PayPal (Coming Soon)"
+      },
+      "table": {
+        "payer": "Payer",
+        "type": "Type",
+        "amount": "Amount",
+        "status": "Status",
+        "date": "Date"
+      },
+      "types": {
+        "enrollment": "Enrollment",
+        "certification": "Certification",
+        "dues": "Dues",
+        "event": "Event"
+      },
+      "status": {
+        "completed": "Completed",
+        "pending": "Pending",
+        "failed": "Failed",
+        "refunded": "Refunded"
+      }
+    },
+    "revenue": {
+      "description": "Global payment overview across all chapters.",
+      "comingSoonTitle": "Coming Soon",
+      "comingSoonDescription": "Global revenue tracking and reporting is under development. The data below is sample data for preview purposes.",
+      "cards": {
+        "totalRevenue": "Total Revenue",
+        "acrossChapters": "Across {count} chapters",
+        "thisMonth": "This Month",
+        "monthMarch2026": "March 2026",
+        "activeCoaches": "Active Coaches",
+        "generatingRevenue": "Generating revenue"
+      },
+      "table": {
+        "chapter": "Chapter",
+        "status": "Status",
+        "coaches": "Coaches",
+        "thisMonth": "This Month",
+        "totalRevenue": "Total Revenue"
+      },
+      "status": {
+        "active": "Active"
+      }
+    },
+    "clients": {
+      "messages": {
+        "updated": "Client updated.",
+        "added": "Client added.",
+        "removed": "Client removed."
+      },
+      "labels": {
+        "website": "Website",
+        "logoPreviewAlt": "Logo preview"
+      }
+    },
+    "dashboardHome": {
+      "coach": {
+        "description": "Manage your coach profile and certification.",
+        "profileCompleteness": "Profile Completeness",
+        "missingFields": "Missing fields:",
+        "editMyProfile": "Edit My Profile ->",
+        "dueInDays": "in {days} days",
+        "overdue": "overdue",
+        "fields": {
+          "fullName": "full name",
+          "bio": "bio",
+          "photo": "photo",
+          "contactEmail": "contact email",
+          "city": "city",
+          "country": "country",
+          "website": "website",
+          "specializations": "specializations",
+          "languages": "languages"
+        }
+      },
+      "contentCreator": {
+        "description": "Create and edit content for your chapter website.",
+        "contentBlocks": "Content Blocks",
+        "activeCoaches": "Active Coaches",
+        "editContentDesc": "Update your website text, images, and translations using the WYSIWYG editor.",
+        "goToEditor": "Go to Content Editor ->",
+        "recentChanges": "Recent Content Changes"
+      },
+      "overview": {
+        "totalChapters": "Total Chapters",
+        "contentBlocks": "Content Blocks",
+        "activeCoaches": "Active Coaches",
+        "events": "Events",
+        "globalDescription": "Here's an overview of the WIAL global network.",
+        "chapterDescription": "Here's an overview of your chapter.",
+        "latestDeployment": "Latest Deployment",
+        "allDeployments": "All deployments ->"
+      }
+    }
   }
 }

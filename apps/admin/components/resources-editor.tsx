@@ -29,6 +29,7 @@ import {
   BookOpen,
   GripVertical,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface ResourceItem {
   title: string;
@@ -38,10 +39,10 @@ interface ResourceItem {
 }
 
 const RESOURCE_TYPES = [
-  { value: "pdf", label: "PDF", icon: FileText, color: "text-red-500" },
-  { value: "video", label: "Video", icon: PlayCircle, color: "text-blue-500" },
-  { value: "link", label: "Link", icon: ExternalLink, color: "text-teal-600" },
-  { value: "article", label: "Article", icon: BookOpen, color: "text-amber-600" },
+  { value: "pdf", icon: FileText, color: "text-red-500" },
+  { value: "video", icon: PlayCircle, color: "text-blue-500" },
+  { value: "link", icon: ExternalLink, color: "text-teal-600" },
+  { value: "article", icon: BookOpen, color: "text-amber-600" },
 ] as const;
 
 function getTypeIcon(type: string) {
@@ -57,6 +58,10 @@ export function ResourcesEditor({
   value: string;
   onChange: (val: string) => void;
 }) {
+  const t = useTranslations("resources");
+  const tc = useTranslations("common");
+  const tui = useTranslations("ui.resources");
+
   const [items, setItems] = useState<ResourceItem[]>(() => {
     try {
       return JSON.parse(value) as ResourceItem[];
@@ -131,10 +136,12 @@ export function ResourcesEditor({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <Label>Resources ({items.length})</Label>
+        <Label>
+          {t("title")} ({items.length})
+        </Label>
         <Button size="sm" onClick={openCreate}>
           <Plus className="mr-2 h-3.5 w-3.5" />
-          Add Resource
+          {t("addResource")}
         </Button>
       </div>
 
@@ -142,7 +149,7 @@ export function ResourcesEditor({
         <div className="rounded-lg border border-dashed p-8 text-center">
           <BookOpen className="mx-auto h-8 w-8 text-muted-foreground" />
           <p className="mt-2 text-sm text-muted-foreground">
-            No resources yet. Add links to documents, videos, and articles.
+            {tui("noResourcesHint")}
           </p>
         </div>
       ) : (
@@ -209,12 +216,12 @@ export function ResourcesEditor({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editingIndex !== null ? "Edit Resource" : "Add Resource"}
+              {editingIndex !== null ? t("editResource") : t("addResource")}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Title *</Label>
+              <Label>{t("titleField")}</Label>
               <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -222,7 +229,7 @@ export function ResourcesEditor({
               />
             </div>
             <div className="space-y-2">
-              <Label>Description</Label>
+              <Label>{t("description")}</Label>
               <Textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -230,16 +237,16 @@ export function ResourcesEditor({
               />
             </div>
             <div className="space-y-2">
-              <Label>URL *</Label>
+              <Label>{t("url")}</Label>
               <Input
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
-                placeholder="https://..."
+                placeholder={tui("urlPlaceholder")}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label>Type</Label>
+              <Label>{t("type")}</Label>
               <Select value={type} onValueChange={setType}>
                 <SelectTrigger>
                   <SelectValue />
@@ -247,7 +254,7 @@ export function ResourcesEditor({
                 <SelectContent>
                   {RESOURCE_TYPES.map((t) => (
                     <SelectItem key={t.value} value={t.value}>
-                      {t.label}
+                      {tui(`typeLabels.${t.value}`)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -256,10 +263,10 @@ export function ResourcesEditor({
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setDialogOpen(false)}>
-              Cancel
+              {tc("cancel")}
             </Button>
             <Button onClick={handleSave} disabled={!title || !url}>
-              {editingIndex !== null ? "Save" : "Add"}
+              {editingIndex !== null ? tc("save") : tc("add")}
             </Button>
           </DialogFooter>
         </DialogContent>

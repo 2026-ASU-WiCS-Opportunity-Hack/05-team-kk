@@ -29,7 +29,6 @@ import {
   UserCircle,
   Calendar,
   Building,
-  BookOpen,
   Sparkles,
   CreditCard,
   BarChart3,
@@ -45,7 +44,7 @@ type NavItem = {
 function getNavItems(
   role: string | null,
   isSuperAdmin: boolean,
-  t: (key: string) => string
+  t: (_key: string) => string
 ): NavItem[] {
   if (isSuperAdmin) {
     return [
@@ -115,14 +114,30 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      {/* Logo zone — matches sidebar dark background */}
-      <SidebarHeader className="border-b border-sidebar-border/30 p-0">
-        <div className="flex h-16 items-center px-4">
-          <Link href="/dashboard" className="flex items-center gap-2.5 font-semibold min-w-0">
-            <Building2 className="h-5 w-5 shrink-0 text-sidebar-primary" />
-            <span className="text-sm font-bold tracking-tight text-sidebar-foreground group-data-[collapsible=icon]:hidden truncate">
-              WIAL Admin
-            </span>
+      {/* Keep logo on a light surface in both themes for legibility */}
+      <SidebarHeader className="border-b border-sidebar-border/30 bg-zinc-50 p-0 dark:bg-zinc-200/90">
+        <div className="flex h-16 items-center px-4 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-2">
+          <Link href="/dashboard" aria-label="WIAL Admin home" className="flex items-center min-w-0">
+            <picture className="block group-data-[collapsible=icon]:hidden rounded-md bg-white px-2 py-1 shadow-sm ring-1 ring-black/5">
+              <source srcSet="/brand/logo.webp" type="image/webp" />
+              <img
+                src="/brand/logo.png"
+                alt="WIAL Admin"
+                className="h-9 w-auto object-contain"
+                loading="eager"
+                decoding="async"
+              />
+            </picture>
+            <picture className="hidden group-data-[collapsible=icon]:block rounded-md bg-white p-1 shadow-sm ring-1 ring-black/5">
+              <source srcSet="/brand/logo-mark.webp" type="image/webp" />
+              <img
+                src="/brand/logo-mark.png"
+                alt="WIAL"
+                className="h-8 w-8 object-contain"
+                loading="eager"
+                decoding="async"
+              />
+            </picture>
           </Link>
         </div>
       </SidebarHeader>

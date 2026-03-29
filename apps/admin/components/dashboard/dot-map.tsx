@@ -6,20 +6,22 @@ import { useTranslations } from "next-intl";
 
 // Approximate Mercator-projected positions for WIAL chapter locations (x%, y%)
 const CHAPTERS = [
-  { x: 22, y: 38, label: "USA", coaches: 12, status: "active" },
-  { x: 49, y: 52, label: "Nigeria", coaches: 8, status: "active" },
-  { x: 32, y: 62, label: "Brazil", coaches: 6, status: "active" },
-  { x: 51, y: 35, label: "Germany", coaches: 5, status: "active" },
-  { x: 78, y: 50, label: "Vietnam", coaches: 4, status: "active" },
-  { x: 82, y: 54, label: "Philippines", coaches: 7, status: "active" },
-  { x: 72, y: 50, label: "India", coaches: 3, status: "active" },
-  { x: 55, y: 58, label: "Kenya", coaches: 5, status: "active" },
-  { x: 84, y: 38, label: "South Korea", coaches: 4, status: "active" },
+  { x: 22, y: 38, countryKey: "usa", coaches: 12, status: "active" },
+  { x: 49, y: 52, countryKey: "nigeria", coaches: 8, status: "active" },
+  { x: 32, y: 62, countryKey: "brazil", coaches: 6, status: "active" },
+  { x: 51, y: 35, countryKey: "germany", coaches: 5, status: "active" },
+  { x: 78, y: 50, countryKey: "vietnam", coaches: 4, status: "active" },
+  { x: 82, y: 54, countryKey: "philippines", coaches: 7, status: "active" },
+  { x: 72, y: 50, countryKey: "india", coaches: 3, status: "active" },
+  { x: 55, y: 58, countryKey: "kenya", coaches: 5, status: "active" },
+  { x: 84, y: 38, countryKey: "southKorea", coaches: 4, status: "active" },
 ] as const;
 
 export function DotMap() {
   const [mounted, setMounted] = useState(false);
   const t = useTranslations("dashboard");
+  const getCountryLabel = (key: (typeof CHAPTERS)[number]["countryKey"]) =>
+    t(`countries.${key}`);
 
   useEffect(() => {
     setMounted(true);
@@ -132,7 +134,7 @@ export function DotMap() {
         {/* Pulsing chapter dots */}
         {CHAPTERS.map((chapter, i) => (
           <div
-            key={chapter.label}
+            key={chapter.countryKey}
             className="absolute -translate-x-1/2 -translate-y-1/2 group cursor-pointer"
             style={{ left: `${chapter.x}%`, top: `${chapter.y}%` }}
           >
@@ -149,7 +151,9 @@ export function DotMap() {
             {/* Tooltip */}
             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 opacity-0 group-hover:opacity-100 transition-all duration-200 scale-90 group-hover:scale-100 pointer-events-none z-10">
               <div className="bg-popover text-popover-foreground border shadow-lg rounded-lg px-3 py-2 text-center whitespace-nowrap">
-                <p className="text-sm font-semibold">{chapter.label}</p>
+                <p className="text-sm font-semibold">
+                  {getCountryLabel(chapter.countryKey)}
+                </p>
                 <p className="text-xs text-muted-foreground">{chapter.coaches} {t("coachesCount")}</p>
               </div>
             </div>
@@ -160,9 +164,13 @@ export function DotMap() {
       {/* Chapter chips legend */}
       <div className="px-5 py-3 border-t flex gap-2 overflow-x-auto">
         {CHAPTERS.map((chapter) => (
-          <Badge key={chapter.label} variant="outline" className="shrink-0 gap-1.5 text-xs">
+          <Badge
+            key={chapter.countryKey}
+            variant="outline"
+            className="shrink-0 gap-1.5 text-xs"
+          >
             <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-            {chapter.label}
+            {getCountryLabel(chapter.countryKey)}
           </Badge>
         ))}
       </div>

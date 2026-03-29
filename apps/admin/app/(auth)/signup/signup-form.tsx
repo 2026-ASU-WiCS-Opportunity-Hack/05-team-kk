@@ -16,6 +16,7 @@ import { Label } from "@repo/ui/label";
 import { Badge } from "@repo/ui/badge";
 import { toast } from "sonner";
 import { Loader2, AlertTriangle } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 type InvitationData = {
   email: string;
@@ -28,6 +29,8 @@ export function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
+  const t = useTranslations("ui.signup");
+  const tui = useTranslations("ui");
 
   const [invitation, setInvitation] = useState<InvitationData | null>(null);
   const [validating, setValidating] = useState(true);
@@ -40,7 +43,7 @@ export function SignupForm() {
   useEffect(() => {
     async function validateToken() {
       if (!token) {
-        setError("No invitation token provided.");
+        setError(t("errors.noToken"));
         setValidating(false);
         return;
       }
@@ -54,7 +57,7 @@ export function SignupForm() {
         .maybeSingle();
 
       if (fetchError || !inv || new Date(inv.expires_at) < new Date()) {
-        setError("This invitation has expired or is no longer valid.");
+        setError(t("errors.expired"));
         setValidating(false);
         return;
       }
@@ -68,7 +71,7 @@ export function SignupForm() {
       setInvitation({
         email: inv.email,
         role: inv.role,
-        chapter_name: chapter?.name ?? "Unknown Chapter",
+        chapter_name: chapter?.name ?? t("labels.unknownChapter"),
         chapter_id: inv.chapter_id,
       });
       setValidating(false);
@@ -81,12 +84,12 @@ export function SignupForm() {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      toast.error("Passwords do not match");
+      toast.error(t("errors.passwordMismatch"));
       return;
     }
 
     if (password.length < 8) {
-      toast.error("Password must be at least 8 characters");
+      toast.error(t("errors.passwordLength"));
       return;
     }
 
@@ -102,15 +105,15 @@ export function SignupForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        toast.error(data.error ?? "Failed to create account");
+        toast.error(data.error ?? t("errors.createAccountFailed"));
         setLoading(false);
         return;
       }
 
-      toast.success("Account created! Please sign in.");
+      toast.success(t("messages.accountCreated"));
       router.push("/login");
     } catch {
-      toast.error("Network error. Please try again.");
+      toast.error(tui("errors.networkTryAgain"));
       setLoading(false);
     }
   }
@@ -121,7 +124,7 @@ export function SignupForm() {
         <CardContent className="flex flex-col items-center gap-4 py-12">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           <p className="text-muted-foreground">
-            Validating your invitation...
+            {t("messages.validatingInvitation")}
           </p>
         </CardContent>
       </Card>
@@ -135,7 +138,7 @@ export function SignupForm() {
           <AlertTriangle className="h-12 w-12 text-amber-500" />
           <p className="text-center font-medium">{error}</p>
           <p className="text-center text-sm text-muted-foreground">
-            Please contact the person who invited you for a new link.
+            {t("messages.requestNewInvite")}
           </p>
         </CardContent>
       </Card>
@@ -144,31 +147,31 @@ export function SignupForm() {
 
   const roleLabel =
     invitation!.role === "chapter_lead"
-      ? "Chapter Lead"
+      ? t("roles.chapterLead")
       : invitation!.role === "content_creator"
-        ? "Content Creator"
-        : "Coach";
+        ? t("roles.contentCreator")
+        : t("roles.coach");
 
   return (
     <Card className="w-full max-w-[420px]">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl">
-          Join {invitation!.chapter_name}
+          {t("title", { chapter: invitation!.chapter_name })}
         </CardTitle>
         <CardDescription className="flex items-center justify-center gap-2">
-          as a <Badge variant="secondary">{roleLabel}</Badge>
+          {t("asRole")} <Badge variant="secondary">{roleLabel}</Badge>
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <Label>Email</Label>
+            <Label>{tui("fields.email")}</Label>
             <div className="rounded-md bg-muted px-3 py-2 text-sm">
               {invitation!.email}
             </div>
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="fullName">Full Name</Label>
+            <Label htmlFor="fullName">{tui("fields.fullName")}</Label>
             <Input
               id="fullName"
               value={fullName}
@@ -178,7 +181,7 @@ export function SignupForm() {
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{tui("fields.password")}</Label>
             <Input
               id="password"
               type="password"
@@ -189,7 +192,7 @@ export function SignupForm() {
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <Label htmlFor="confirmPassword">{tui("fields.confirmPassword")}</Label>
             <Input
               id="confirmPassword"
               type="password"
@@ -202,7 +205,7 @@ export function SignupForm() {
             {loading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              "Create Account"
+              t("actions.createAccount")
             )}
           </Button>
         </form>

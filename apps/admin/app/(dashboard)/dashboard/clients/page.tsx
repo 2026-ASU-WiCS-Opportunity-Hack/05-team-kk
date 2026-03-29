@@ -2,9 +2,12 @@ import { getAuthUser, isSuperAdmin } from "@/lib/auth";
 import { createClient } from "@repo/supabase/server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { ClientOrgsClient } from "./clients-client";
 
 export default async function ClientOrgsPage() {
+  const t = await getTranslations("clients");
+  const tui = await getTranslations("ui.pageState");
   const user = await getAuthUser();
   if (!user) redirect("/login");
 
@@ -19,10 +22,10 @@ export default async function ClientOrgsPage() {
     return (
       <div className="space-y-6">
         <h1 className="text-3xl font-semibold tracking-tight">
-          Client Organizations
+          {t("title")}
         </h1>
         <p className="text-muted-foreground">
-          Select a chapter to manage client organizations.
+          {tui("selectChapterToManage", { subject: t("title").toLowerCase() })}
         </p>
       </div>
     );

@@ -22,20 +22,29 @@ import { AnimatedNumber } from "@/components/dashboard/animated-number";
 import { DotMap } from "@/components/dashboard/dot-map";
 import { BentoGrid } from "@/components/dashboard/bento-grid";
 import { cookies } from "next/headers";
+import { getTranslations } from "next-intl/server";
 
-function formatRelativeTime(dateStr: string) {
+function formatRelativeTime(
+  dateStr: string,
+  tc: (key: string, params?: Record<string, string | number | Date>) => string
+) {
   const date = new Date(dateStr);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   const diffMins = Math.floor(diffMs / 60000);
-  if (diffMins < 1) return "just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffMins < 1) return tc("justNow");
+  if (diffMins < 60) return tc("minsAgo", { count: diffMins });
   const diffHours = Math.floor(diffMins / 60);
-  if (diffHours < 24) return `${diffHours}h ago`;
-  return `${Math.floor(diffHours / 24)}d ago`;
+  if (diffHours < 24) return tc("hoursAgo", { count: diffHours });
+  return tc("daysAgo", { count: Math.floor(diffHours / 24) });
 }
 
 export default async function DashboardPage() {
+  const td = await getTranslations("dashboard");
+  const tc = await getTranslations("common");
+  const tDeploy = await getTranslations("deployments");
+  const tCoaches = await getTranslations("coaches");
+  const tui = await getTranslations("ui.dashboardHome");
   const user = await getAuthUser();
   if (!user) redirect("/login");
 
@@ -99,11 +108,11 @@ export default async function DashboardPage() {
 
   type DeployStatus = "done" | "failed" | "building" | "deploying" | "queued";
   const statusMap: Record<DeployStatus, { label: string; icon: React.ReactNode; badge: "default" | "secondary" | "destructive" | "outline" }> = {
-    done: { label: "Live", icon: <CheckCircle2 className="h-4 w-4 text-green-500" />, badge: "default" },
-    failed: { label: "Failed", icon: <XCircle className="h-4 w-4 text-destructive" />, badge: "destructive" },
-    building: { label: "Building", icon: <Loader2 className="h-4 w-4 animate-spin text-blue-500" />, badge: "secondary" },
-    deploying: { label: "Deploying", icon: <Loader2 className="h-4 w-4 animate-spin text-blue-500" />, badge: "secondary" },
-    queued: { label: "Queued", icon: <Loader2 className="h-4 w-4 animate-spin text-amber-500" />, badge: "outline" },
+    done: { label: tDeploy("live"), icon: <CheckCircle2 className="h-4 w-4 text-green-500" />, badge: "default" },
+    failed: { label: tDeploy("failed"), icon: <XCircle className="h-4 w-4 text-destructive" />, badge: "destructive" },
+    building: { label: tDeploy("building"), icon: <Loader2 className="h-4 w-4 animate-spin text-blue-500" />, badge: "secondary" },
+    deploying: { label: tDeploy("deploying"), icon: <Loader2 className="h-4 w-4 animate-spin text-blue-500" />, badge: "secondary" },
+    queued: { label: tDeploy("queued"), icon: <Loader2 className="h-4 w-4 animate-spin text-amber-500" />, badge: "outline" },
   };
   const deployStatusConfig = latestDeployment
     ? statusMap[latestDeployment.status as DeployStatus] ?? { label: latestDeployment.status, icon: <Rocket className="h-4 w-4 text-muted-foreground" />, badge: "outline" as const }
@@ -123,15 +132,26 @@ export default async function DashboardPage() {
     // Profile completeness
     const fields = ["full_name", "bio", "photo_url", "contact_email", "city", "country", "website"] as const;
     const specFields = ["specializations", "languages"] as const;
+    const fieldLabels: Record<string, string> = {
+      full_name: tui("coach.fields.fullName"),
+      bio: tui("coach.fields.bio"),
+      photo_url: tui("coach.fields.photo"),
+      contact_email: tui("coach.fields.contactEmail"),
+      city: tui("coach.fields.city"),
+      country: tui("coach.fields.country"),
+      website: tui("coach.fields.website"),
+      specializations: tui("coach.fields.specializations"),
+      languages: tui("coach.fields.languages"),
+    };
     let filled = 0;
     const missing: string[] = [];
     for (const f of fields) {
       if (coachRecord?.[f]) filled++;
-      else missing.push(f.replace(/_/g, " "));
+      else missing.push(fieldLabels[f] ?? f);
     }
     for (const f of specFields) {
       if (coachRecord?.[f] && (coachRecord[f] as string[]).length > 0) filled++;
-      else missing.push(f);
+      else missing.push(fieldLabels[f] ?? f);
     }
     const total = fields.length + specFields.length;
     const pct = coachRecord ? Math.round((filled / total) * 100) : 0;
@@ -161,10 +181,10 @@ export default async function DashboardPage() {
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">
-            Welcome back, {user.fullName}
+            {td("welcome")}, {user.fullName}
           </h1>
           <p className="text-muted-foreground">
-            Manage your coach profile and certification.
+            {tui("coach.description")}
           </p>
         </div>
 
@@ -174,7 +194,7 @@ export default async function DashboardPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
                 <UserCircle className="h-5 w-5" />
-                Profile Completeness
+                {tui("coach.profileCompleteness")}
               </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col items-center gap-4">
@@ -193,7 +213,7 @@ export default async function DashboardPage() {
               </div>
               {missing.length > 0 && (
                 <div className="w-full space-y-1">
-                  <p className="text-xs text-muted-foreground">Missing fields:</p>
+                  <p className="text-xs text-muted-foreground">{tui("coach.missingFields")}</p>
                   {missing.map((f) => (
                     <Link
                       key={f}
@@ -206,7 +226,7 @@ export default async function DashboardPage() {
                 </div>
               )}
               <Link href="/dashboard/profile" className="text-sm text-primary hover:underline">
-                Edit My Profile →
+                {tui("coach.editMyProfile")}
               </Link>
             </CardContent>
           </Card>
@@ -214,7 +234,7 @@ export default async function DashboardPage() {
           {/* My Certification */}
           <Card className={`border-l-4 ${certBgColors[coachRecord?.certification_level ?? "CALC"] ?? "border-l-primary"}`}>
             <CardHeader>
-              <CardTitle className="text-base">My Certification</CardTitle>
+              <CardTitle className="text-base">{tCoaches("myCertification")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -224,23 +244,23 @@ export default async function DashboardPage() {
               </div>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-muted-foreground">Hours Logged</p>
+                  <p className="text-muted-foreground">{tCoaches("hoursLogged")}</p>
                   <p className="text-xl font-semibold flex items-center gap-1">
                     <Clock className="h-4 w-4 text-muted-foreground" />
                     {coachRecord?.hours_logged ?? 0}
                   </p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">CE Credits</p>
+                  <p className="text-muted-foreground">{tCoaches("ceCredits")}</p>
                   <p className="text-xl font-semibold">{coachRecord?.ce_credits_earned ?? 0}</p>
                 </div>
               </div>
               {dueDate && (
                 <div>
-                  <p className="text-muted-foreground text-sm">Recertification Due</p>
+                  <p className="text-muted-foreground text-sm">{tCoaches("recertDue")}</p>
                   <p className={`text-sm font-medium ${dueColor}`}>
                     {dueDate.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
-                    {daysUntilDue !== null && ` (${daysUntilDue > 0 ? `in ${daysUntilDue} days` : "overdue"})`}
+                    {daysUntilDue !== null && ` (${daysUntilDue > 0 ? tui("coach.dueInDays", { days: daysUntilDue }) : tui("coach.overdue")})`}
                   </p>
                 </div>
               )}
@@ -280,10 +300,10 @@ export default async function DashboardPage() {
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">
-            Welcome back, {user.fullName}
+            {td("welcome")}, {user.fullName}
           </h1>
           <p className="text-muted-foreground">
-            Create and edit content for your chapter website.
+            {tui("contentCreator.description")}
           </p>
         </div>
 
@@ -291,7 +311,7 @@ export default async function DashboardPage() {
           <Card className="overflow-hidden">
             <div className="h-1 w-full bg-primary" />
             <CardHeader className="pb-2 pt-4">
-              <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Content Blocks</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">{tui("contentCreator.contentBlocks")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold"><AnimatedNumber value={contentCount} /></div>
@@ -300,7 +320,7 @@ export default async function DashboardPage() {
           <Card className="overflow-hidden">
             <div className="h-1 w-full bg-green-500" />
             <CardHeader className="pb-2 pt-4">
-              <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Active Coaches</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">{tui("contentCreator.activeCoaches")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold"><AnimatedNumber value={coachCount ?? 0} /></div>
@@ -313,15 +333,15 @@ export default async function DashboardPage() {
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
               <FileText className="h-5 w-5" />
-              Edit Content
+              {td("editContent")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Update your website text, images, and translations using the WYSIWYG editor.
+              {tui("contentCreator.editContentDesc")}
             </p>
             <Link href="/dashboard/content" className="inline-flex items-center text-sm text-primary hover:underline">
-              Go to Content Editor →
+              {tui("contentCreator.goToEditor")}
             </Link>
           </CardContent>
         </Card>
@@ -330,7 +350,7 @@ export default async function DashboardPage() {
         {recentBlocks && recentBlocks.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Recent Content Changes</CardTitle>
+              <CardTitle className="text-base">{tui("contentCreator.recentChanges")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -345,7 +365,7 @@ export default async function DashboardPage() {
                       </p>
                     </div>
                     <span className="text-xs text-muted-foreground">
-                      {formatRelativeTime(block.updated_at)}
+                      {formatRelativeTime(block.updated_at, tc)}
                     </span>
                   </div>
                 ))}
@@ -362,19 +382,19 @@ export default async function DashboardPage() {
 
   const stats = [
     {
-      title: isGlobalView ? "Total Chapters" : "Content Blocks",
+      title: isGlobalView ? tui("overview.totalChapters") : tui("overview.contentBlocks"),
       value: isGlobalView ? (chapterCount ?? 0) : contentCount,
       icon: isGlobalView ? Building2 : FileText,
       color: "bg-primary",
     },
-    { title: "Active Coaches", value: coachCount ?? 0, icon: Users, color: "bg-green-500" },
+    { title: tui("overview.activeCoaches"), value: coachCount ?? 0, icon: Users, color: "bg-green-500" },
     {
-      title: isGlobalView ? "Deployments" : "Events",
+      title: isGlobalView ? tDeploy("title") : tui("overview.events"),
       value: deploymentCount ?? 0,
       icon: isGlobalView ? Rocket : Calendar,
       color: "bg-secondary",
     },
-    { title: "Deployments", value: deploymentCount ?? 0, icon: Rocket, color: "bg-accent" },
+    { title: tDeploy("title"), value: deploymentCount ?? 0, icon: Rocket, color: "bg-accent" },
   ];
 
   // Remove duplicate if global (both slots show deployments)
@@ -384,12 +404,12 @@ export default async function DashboardPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">
-          Welcome back, {user.fullName}
+          {td("welcome")}, {user.fullName}
         </h1>
         <p className="text-muted-foreground">
           {isGlobalView
-            ? "Here's an overview of the WIAL global network."
-            : "Here's an overview of your chapter."}
+            ? tui("overview.globalDescription")
+            : tui("overview.chapterDescription")}
         </p>
       </div>
 
@@ -419,7 +439,7 @@ export default async function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Latest Deployment
+              {tui("overview.latestDeployment")}
             </CardTitle>
             <Rocket className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -433,7 +453,8 @@ export default async function DashboardPage() {
                   </Badge>
                   <span className="text-sm text-muted-foreground">
                     {formatRelativeTime(
-                      latestDeployment.completed_at ?? latestDeployment.created_at
+                      latestDeployment.completed_at ?? latestDeployment.created_at,
+                      tc
                     )}
                   </span>
                 </div>
@@ -451,7 +472,7 @@ export default async function DashboardPage() {
                     rel="noopener noreferrer"
                     className="flex items-center gap-1 text-sm text-primary hover:underline"
                   >
-                    View site
+                    {tDeploy("viewSite")}
                     <ExternalLink className="h-3 w-3" />
                   </a>
                 )}
@@ -459,7 +480,7 @@ export default async function DashboardPage() {
                   href="/dashboard/deployments"
                   className="text-sm text-primary hover:underline"
                 >
-                  All deployments →
+                  {tui("overview.allDeployments")}
                 </Link>
               </div>
             </div>
