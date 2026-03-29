@@ -40,8 +40,8 @@ A multi-tenant platform with three layers:
 |                       | URL                                |
 | --------------------- | ---------------------------------- |
 | Admin Dashboard       | https://wial.ashwanthbk.com        |
-| Chapter Site - Brazil | https://brazil.wial.ashwanthbk.com |
 | Chapter Site - India  | https://india.wial.ashwanthbk.com  |
+| Chapter Site - Brazil | https://brazil.wial.ashwanthbk.com |
 
 **Demo credentials:**
 
