@@ -53,6 +53,24 @@ jobs:
         run: |
           set -euo pipefail
 
+          PUBLIC_FUNCTIONS=(
+            contact-form
+            find-coach-match
+            newsletter-subscribe
+            semantic-search
+            stripe-connect-webhook
+          )
+
+          is_public_function() {
+            local function_name="$1"
+            for public_name in "${PUBLIC_FUNCTIONS[@]}"; do
+              if [ "${public_name}" = "${function_name}" ]; then
+                return 0
+              fi
+            done
+            return 1
+          }
+
           mapfile -t FUNCTIONS < <(find supabase/functions -mindepth 1 -maxdepth 1 -type d ! -name "_shared" -printf "%f\n" | sort)
           if [ "${#FUNCTIONS[@]}" -eq 0 ]; then
             echo "::error::No functions found in supabase/functions"
@@ -61,7 +79,11 @@ jobs:
 
           for function_name in "${FUNCTIONS[@]}"; do
             echo "Deploying ${function_name}..."
-            supabase functions deploy "${function_name}" --project-ref "${SUPABASE_PROJECT_REF}"
+            if is_public_function "${function_name}"; then
+              supabase functions deploy "${function_name}" --project-ref "${SUPABASE_PROJECT_REF}" --no-verify-jwt
+            else
+              supabase functions deploy "${function_name}" --project-ref "${SUPABASE_PROJECT_REF}"
+            fi
           done
 
           echo "All edge functions deployed."

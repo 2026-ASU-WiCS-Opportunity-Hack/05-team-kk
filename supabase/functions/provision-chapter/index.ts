@@ -597,8 +597,14 @@ Deno.serve(async (req) => {
       throw new Error("Failed to fetch GitHub repo metadata for Cloudflare integration");
     }
     const ghRepoData = await ghRepoRes.json();
-    const repoId = ghRepoData.id; // numeric
-    const ownerId = ghRepoData.owner?.id; // numeric
+    const repoId =
+      ghRepoData.id !== undefined && ghRepoData.id !== null
+        ? String(ghRepoData.id)
+        : undefined;
+    const ownerId =
+      ghRepoData.owner?.id !== undefined && ghRepoData.owner?.id !== null
+        ? String(ghRepoData.owner.id)
+        : undefined;
 
     const watchPathIncludes = [
       `${chapterFolder}/*`,
@@ -617,6 +623,22 @@ Deno.serve(async (req) => {
       CHAPTER_SLUG: { value: slug, type: "plain_text" },
     };
 
+    const sourceConfig: Record<string, unknown> = {
+      owner: githubOwner,
+      repo_name: githubRepo,
+      production_branch: "main",
+      pr_comments_enabled: true,
+      deployments_enabled: true,
+      production_deployments_enabled: true,
+      preview_deployment_setting: "all",
+      preview_branch_includes: ["*"],
+      preview_branch_excludes: [],
+      path_includes: watchPathIncludes,
+      path_excludes: [],
+    };
+    if (ownerId) sourceConfig.owner_id = ownerId;
+    if (repoId) sourceConfig.repo_id = repoId;
+
     const createProjectRes = await fetch(cfBaseUrl, {
       method: "POST",
       headers: cfHeaders,
@@ -631,21 +653,7 @@ Deno.serve(async (req) => {
         },
         source: {
           type: "github",
-          config: {
-            owner: githubOwner,
-            repo_name: githubRepo,
-            owner_id: ownerId,
-            repo_id: repoId,
-            production_branch: "main",
-            pr_comments_enabled: true,
-            deployments_enabled: true,
-            production_deployments_enabled: true,
-            preview_deployment_setting: "all",
-            preview_branch_includes: ["*"],
-            preview_branch_excludes: [],
-            path_includes: watchPathIncludes,
-            path_excludes: [],
-          },
+          config: sourceConfig,
         },
         deployment_configs: {
           production: {
@@ -658,23 +666,62 @@ Deno.serve(async (req) => {
       }),
     });
 
-    const createProjectData = await createProjectRes.json();
+    const createProjectData = (await createProjectRes.json().catch(() => null)) as
+      | CloudflareEnvelope<unknown>
+      | null;
 
     if (!createProjectRes.ok) {
-      const errorMsg =
-        createProjectData?.errors?.[0]?.message ||
-        "Failed to create Cloudflare Pages project";
-      return new Response(
-        JSON.stringify({
-          error: errorMsg,
-          details: createProjectData,
-          note: "GitHub scaffold succeeded but Cloudflare project creation failed. Retry provisioning.",
-        }),
-        {
-          status: 502,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+      const existingProjectMessage = Array.isArray(createProjectData?.errors)
+        ? createProjectData.errors
+            .map((err) => (err?.message ?? "").toLowerCase())
+            .find((msg) => msg.includes("already exists"))
+        : null;
+
+      if (existingProjectMessage) {
+        const existingProjectRes = await fetch(`${cfBaseUrl}/${projectName}`, {
+          method: "GET",
+          headers: cfHeaders,
+        });
+
+        if (!existingProjectRes.ok) {
+          const existingProjectData = await existingProjectRes
+            .json()
+            .catch(() => null);
+          return new Response(
+            JSON.stringify({
+              error:
+                "Cloudflare project may already exist but could not be reused",
+              details: existingProjectData ?? createProjectData,
+            }),
+            {
+              status: 502,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            }
+          );
         }
-      );
+      } else {
+        console.error(
+          "Cloudflare project creation failed",
+          JSON.stringify(createProjectData)
+        );
+      }
+
+      if (!existingProjectMessage) {
+        const errorMsg =
+          createProjectData?.errors?.[0]?.message ||
+          "Failed to create Cloudflare Pages project";
+        return new Response(
+          JSON.stringify({
+            error: errorMsg,
+            details: createProjectData,
+            note: "GitHub scaffold succeeded but Cloudflare project creation failed. Retry provisioning.",
+          }),
+          {
+            status: 502,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
     }
 
     const watchPathsWarning: string | null = null;
