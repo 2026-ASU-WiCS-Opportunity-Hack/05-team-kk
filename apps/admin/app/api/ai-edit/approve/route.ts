@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, isSuperAdmin, getUserRoleForChapter } from "@/lib/auth";
 import { createClient } from "@repo/supabase/server";
+import { createClient as createServiceClient } from "@supabase/supabase-js";
 
 export async function POST(req: NextRequest) {
   const user = await getAuthUser();
@@ -20,6 +21,10 @@ export async function POST(req: NextRequest) {
   }
 
   const supabase = await createClient();
+  const serviceSupabase = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
 
   const { data: deployment } = await supabase
     .from("deployments")
@@ -140,7 +145,7 @@ export async function POST(req: NextRequest) {
         }
       );
 
-      await supabase
+      await serviceSupabase
         .from("deployments")
         .update({
           status: "done",
@@ -174,7 +179,7 @@ export async function POST(req: NextRequest) {
     // Branch may already be deleted; proceed
   }
 
-  await supabase
+  await serviceSupabase
     .from("deployments")
     .update({
       status: "failed",

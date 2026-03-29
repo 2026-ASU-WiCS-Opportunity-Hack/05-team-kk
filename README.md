@@ -37,29 +37,37 @@ A multi-tenant chapter management platform with three layers:
 
 ## Live Links
 
-| | URL |
-|---|---|
-| Admin Dashboard | https://admin.wial.ashwanthbk.com |
-| Chapter Site — USA | https://usa.wial.ashwanthbk.com |
-| Chapter Site — Nigeria | https://nigeria.wial.ashwanthbk.com |
+|                       | URL                                |
+| --------------------- | ---------------------------------- |
+| Admin Dashboard       | https://admin.wial.ashwanthbk.com  |
+| Chapter Site — Brazil | https://brazil.wial.ashwanthbk.com |
+| Chapter Site — India  | https://india.wial.ashwanthbk.com  |
 
-**Test login:** `admin@wial-test.com` / `TestAdmin123!`
+**Demo credentials:**
+
+| Role                   | Email                      | Password      |
+| ---------------------- | -------------------------- | ------------- |
+| Super Admin            | admin@wial-test.com        | TestAdmin123! |
+| Chapter Lead — USA     | usa-lead@wial-demo.com     | Demo1234!     |
+| Chapter Lead — Nigeria | nigeria-lead@wial-demo.com | Demo1234!     |
+| Chapter Lead — Brazil  | brazil-lead@wial-demo.com  | Demo1234!     |
+| Chapter Lead — India   | india-lead@wial-demo.com   | Demo1234!     |
 
 ---
 
 ## Tech Stack
 
-| | |
-|---|---|
-| Admin | Next.js 16, Tailwind CSS, shadcn/ui, next-intl (en/es/fr/pt) |
-| Chapter Sites | Astro 6 (static, zero JS by default) |
-| Backend | Supabase — PostgreSQL, Auth, Row Level Security, Edge Functions, Realtime |
-| AI | Gemini API — `text-embedding-004` (768-dim), Gemini Flash for reranking + content gen |
-| Vector Search | pgvector with HNSW index |
-| Payments | Stripe Connect Express |
-| Email | Resend |
-| Deployment | Vercel (admin) + Cloudflare Pages (chapters) |
-| Monorepo | Turborepo + Yarn |
+|               |                                                                                       |
+| ------------- | ------------------------------------------------------------------------------------- |
+| Admin         | Next.js 16, Tailwind CSS, shadcn/ui, next-intl (en/es/fr/pt)                          |
+| Chapter Sites | Astro 6 (static, zero JS by default)                                                  |
+| Backend       | Supabase — PostgreSQL, Auth, Row Level Security, Edge Functions, Realtime             |
+| AI            | Gemini API — `text-embedding-004` (768-dim), Gemini Flash for reranking + content gen |
+| Vector Search | pgvector with HNSW index                                                              |
+| Payments      | Stripe Connect Express                                                                |
+| Email         | Resend                                                                                |
+| Deployment    | Vercel (admin) + Cloudflare Pages (chapters)                                          |
+| Monorepo      | Turborepo + Yarn                                                                      |
 
 ---
 
@@ -72,6 +80,7 @@ Every coach profile (bio + specializations) gets embedded at save time via a Sup
 The practical result: type "desenvolvimento de liderança em manufatura" (Portuguese) and you get back English-speaking coaches who specialize in manufacturing leadership development — results no keyword search would return.
 
 We also built:
+
 - **AI content generation** — chapter leads provide their roster, events, and a target language; Gemini generates culturally-adapted copy for all 10 chapter pages (~60 seconds)
 - **AI site editing** — chapter lead starts a session → a GitHub branch is created via the API → each prompt triggers `ai-edit.yml` (Gemini edits the chapter's Astro folder, commits, pushes) → Cloudflare builds a branch preview → approve to squash-merge to main
 
@@ -131,6 +140,7 @@ yarn install
 ```
 
 Create `apps/admin/.env.local`:
+
 ```
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
@@ -139,6 +149,7 @@ NEXT_PUBLIC_ADMIN_URL=http://localhost:3000
 ```
 
 Create `apps/chapter-template/.env`:
+
 ```
 PUBLIC_SUPABASE_URL=your_supabase_url
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
@@ -161,6 +172,7 @@ yarn workspace @wial/chapter-template dev
 ```
 
 To scaffold a new chapter:
+
 ```bash
 yarn scaffold-chapter --slug=kenya --name="WIAL Kenya"
 ```

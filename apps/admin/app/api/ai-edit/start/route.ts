@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, isSuperAdmin, getUserRoleForChapter } from "@/lib/auth";
 import { createClient } from "@repo/supabase/server";
+import { createClient as createServiceClient } from "@supabase/supabase-js";
 
 export async function POST(req: NextRequest) {
   const user = await getAuthUser();
@@ -124,8 +125,13 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Create deployment record — session is now active
-  const { data: deployment, error: insertError } = await supabase
+  // Create deployment record using service role (RLS: deployments only allow insert via service role)
+  const serviceSupabase = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  const { data: deployment, error: insertError } = await serviceSupabase
     .from("deployments")
     .insert({
       chapter_id: chapterId,

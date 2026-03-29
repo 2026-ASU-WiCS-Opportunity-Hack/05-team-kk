@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, isSuperAdmin, getUserRoleForChapter } from "@/lib/auth";
 import { createClient } from "@repo/supabase/server";
+import { createClient as createServiceClient } from "@supabase/supabase-js";
 
 export async function POST(req: NextRequest) {
   const user = await getAuthUser();
@@ -20,6 +21,10 @@ export async function POST(req: NextRequest) {
   }
 
   const supabase = await createClient();
+  const serviceSupabase = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
 
   // Fetch deployment
   const { data: deployment } = await supabase
@@ -69,7 +74,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Update deployment: store prompt, set status to building
-  await supabase
+  await serviceSupabase
     .from("deployments")
     .update({ ai_prompt: prompt, status: "building" })
     .eq("id", deploymentId);
@@ -80,7 +85,7 @@ export async function POST(req: NextRequest) {
   const branchName = deployment.commit_reference ?? "";
 
   if (!/^[a-z0-9-]+$/.test(chapterSlug)) {
-    await supabase
+    await serviceSupabase
       .from("deployments")
       .update({
         status: deployment.status === "queued" ? "queued" : "deploying",
@@ -96,7 +101,7 @@ export async function POST(req: NextRequest) {
 
   const expectedBranchPrefix = `ai-edit/${chapterSlug}/`;
   if (!branchName.startsWith(expectedBranchPrefix)) {
-    await supabase
+    await serviceSupabase
       .from("deployments")
       .update({
         status: deployment.status === "queued" ? "queued" : "deploying",
@@ -135,7 +140,7 @@ export async function POST(req: NextRequest) {
     if (!dispatchRes.ok) {
       const errBody = await dispatchRes.text();
       // Revert status so user can retry
-      await supabase
+      await serviceSupabase
         .from("deployments")
         .update({ status: deployment.status === "queued" ? "queued" : "deploying" })
         .eq("id", deploymentId);
@@ -146,7 +151,7 @@ export async function POST(req: NextRequest) {
       );
     }
   } catch {
-    await supabase
+    await serviceSupabase
       .from("deployments")
       .update({ status: deployment.status === "queued" ? "queued" : "deploying" })
       .eq("id", deploymentId);
