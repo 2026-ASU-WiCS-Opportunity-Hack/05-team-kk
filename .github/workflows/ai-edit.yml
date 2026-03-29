@@ -43,10 +43,8 @@ jobs:
           git fetch origin "${{ inputs.branch_name }}"
           git checkout "${{ inputs.branch_name }}"
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
+      - name: Install OpenCode
+        run: curl -fsSL https://opencode.ai/install | bash
 
       - name: Update deployment status to building
         run: |
@@ -58,119 +56,59 @@ jobs:
             -H "Prefer: return=minimal" \
             -d '{"status": "building"}'
 
-      - name: Run AI edit on chapter folder
+      - name: Validate chapter folder exists
         run: |
           CHAPTER_DIR="apps/chapter-${{ inputs.chapter_slug }}"
-          ALLOWED_ROOT="$(realpath -m "$CHAPTER_DIR")"
-
           if [ ! -d "$CHAPTER_DIR" ]; then
             echo "Error: Chapter folder $CHAPTER_DIR does not exist"
             exit 1
           fi
 
-          echo "Working directory: $CHAPTER_DIR"
-
-          # Collect context: chapter files for the AI
-          CHAPTER_FILES=$(find "$CHAPTER_DIR/src" -type f \( -name "*.astro" -o -name "*.ts" -o -name "*.css" \) 2>/dev/null | head -40)
-
-          # Also collect template-core files so the AI knows what shared components exist
-          TEMPLATE_CORE_FILES=$(find "packages/template-core/src" -type f \( -name "*.astro" -o -name "*.ts" \) 2>/dev/null | head -30)
-
-          # Read chapter files for context (limited to avoid token overflow)
-          CONTEXT=""
-          for f in $CHAPTER_FILES; do
-            if [ -f "$f" ]; then
-              CONTENT=$(head -100 "$f")
-              CONTEXT="$CONTEXT
-
-          --- FILE: $f ---
-          $CONTENT"
-            fi
-          done
-
-          # Read template-core files as read-only reference context
-          TEMPLATE_CONTEXT=""
-          for f in $TEMPLATE_CORE_FILES; do
-            if [ -f "$f" ]; then
-              CONTENT=$(head -80 "$f")
-              TEMPLATE_CONTEXT="$TEMPLATE_CONTEXT
-
-          --- SHARED (read-only): $f ---
-          $CONTENT"
-            fi
-          done
-
-          # Call Gemini API to generate edits
-          ESCAPED_PROMPT=$(echo "${{ inputs.prompt_text }}" | jq -Rs .)
-          ESCAPED_CONTEXT=$(echo "$CONTEXT" | jq -Rs .)
-          ESCAPED_TEMPLATE_CONTEXT=$(echo "$TEMPLATE_CONTEXT" | jq -Rs .)
-
-          REQUEST_BODY=$(cat <<GEMINI_EOF
+      - name: Write OpenCode config
+        run: |
+          cat > "apps/chapter-${{ inputs.chapter_slug }}/opencode.json" << 'EOF'
           {
-            "contents": [{
-              "parts": [{
-                "text": "You are an expert Astro/web developer. You are editing a WIAL chapter website.\n\nThe user wants the following change:\n${ESCAPED_PROMPT//\"/\\\"}\n\nHere are the current files in the chapter directory (you may edit these):\n${ESCAPED_CONTEXT//\"/\\\"}\n\nHere are shared template-core files (READ-ONLY reference — you can import from these but must NOT edit them):\n${ESCAPED_TEMPLATE_CONTEXT//\"/\\\"}\n\nIMPORTANT RULES:\n- Only create or modify files inside apps/chapter-${{ inputs.chapter_slug }}/\n- You can import shared components from @repo/template-core (e.g., layouts, components, utilities)\n- Do NOT output edits to packages/template-core/ or any other directory\n\nRespond with a JSON array of file edits. Each edit object has:\n- \"path\": the file path relative to the repo root (must start with apps/chapter-${{ inputs.chapter_slug }}/)\n- \"content\": the complete new file content\n\nOnly include files that need changes. Return valid JSON only, no markdown fences."
-              }]
-            }],
-            "generationConfig": {
-              "temperature": 0.2,
-              "maxOutputTokens": 8192,
-              "responseMimeType": "application/json"
+            "model": "google/gemini-3-flash-preview",
+            "permission": {
+              "read": "allow",
+              "write": "allow",
+              "edit": "allow",
+              "bash": "deny"
             }
           }
-          GEMINI_EOF
-          )
+          EOF
 
-          RESPONSE=$(curl -s -X POST \
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${{ env.GEMINI_API_KEY }}" \
-            -H "Content-Type: application/json" \
-            -d "$REQUEST_BODY")
+      - name: Run AI edit on chapter folder
+        run: |
+          FULL_PROMPT="${{ inputs.prompt_text }}
 
-          # Extract the text content from Gemini response
-          EDITS=$(echo "$RESPONSE" | jq -r '.candidates[0].content.parts[0].text // empty')
+          CONSTRAINTS — follow these exactly:
+          - Your working directory is the chapter folder for: ${{ inputs.chapter_slug }}
+          - You MAY read and write any files within this directory
+          - You MAY read files in ../../packages/template-core/ for reference (shared components, layouts, utilities)
+          - You must NOT write, create, or delete any files in packages/template-core/ or anywhere outside your working directory
+          - When importing shared components, use the @repo/template-core alias"
 
-          if [ -z "$EDITS" ]; then
-            echo "Error: No edits returned from AI"
-            echo "$RESPONSE" | jq . 2>/dev/null || echo "$RESPONSE"
+          cd "apps/chapter-${{ inputs.chapter_slug }}"
+          opencode run "$FULL_PROMPT"
+
+      - name: Remove temporary OpenCode config
+        if: always()
+        run: rm -f "apps/chapter-${{ inputs.chapter_slug }}/opencode.json"
+
+      - name: Enforce path scope — block out-of-scope writes
+        run: |
+          CHAPTER_DIR="apps/chapter-${{ inputs.chapter_slug }}"
+          VIOLATIONS=$(git diff --name-only HEAD | grep -v "^${CHAPTER_DIR}/" || true)
+
+          if [ -n "$VIOLATIONS" ]; then
+            echo "SECURITY VIOLATION: AI wrote outside the allowed chapter directory:"
+            echo "$VIOLATIONS"
+            echo "---"
+            echo "Resetting all changes and aborting."
+            git checkout -- .
+            git clean -fd
             exit 1
-          fi
-
-          if ! echo "$EDITS" | jq -e 'type == "array"' >/dev/null 2>&1; then
-            echo "Error: AI response was not a JSON array of edits"
-            echo "$EDITS"
-            exit 1
-          fi
-
-          # Apply edits — strictly scoped to this chapter's folder only
-          BLOCKED_EDITS=0
-          APPLIED_EDITS=0
-          while read -r edit; do
-            FILE_PATH=$(echo "$edit" | jq -r '.path')
-            FILE_CONTENT=$(echo "$edit" | jq -r '.content')
-            RESOLVED_PATH="$(realpath -m "$FILE_PATH")"
-
-            # Security: edits MUST resolve inside this chapter's directory only.
-            case "$RESOLVED_PATH" in
-              "$ALLOWED_ROOT"/*)
-                echo "Applying edit to: $FILE_PATH"
-                mkdir -p "$(dirname "$RESOLVED_PATH")"
-                printf '%s' "$FILE_CONTENT" > "$RESOLVED_PATH"
-                APPLIED_EDITS=$((APPLIED_EDITS + 1))
-                ;;
-              *)
-                echo "BLOCKED: Edit to $FILE_PATH resolves outside allowed scope ($CHAPTER_DIR)"
-                BLOCKED_EDITS=$((BLOCKED_EDITS + 1))
-                ;;
-            esac
-          done < <(echo "$EDITS" | jq -c '.[]')
-
-          if [ "$BLOCKED_EDITS" -gt 0 ]; then
-            echo "Error: blocked $BLOCKED_EDITS out-of-scope edits"
-            exit 1
-          fi
-
-          if [ "$APPLIED_EDITS" -eq 0 ]; then
-            echo "No valid in-scope edits were produced."
           fi
 
       - name: Check for changes
@@ -195,7 +133,6 @@ jobs:
         if: steps.changes.outputs.has_changes == 'true'
         id: preview
         run: |
-          # Cloudflare Pages branch preview URL pattern
           BRANCH_SLUG=$(echo "${{ inputs.branch_name }}" | sed 's/[^a-zA-Z0-9]/-/g' | tr '[:upper:]' '[:lower:]' | head -c 28)
           PREVIEW_URL="https://${BRANCH_SLUG}.wial-${{ inputs.chapter_slug }}.pages.dev"
           echo "preview_url=$PREVIEW_URL" >> "$GITHUB_OUTPUT"

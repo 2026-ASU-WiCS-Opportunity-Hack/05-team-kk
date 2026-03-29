@@ -1,7 +1,7 @@
 # Reference
 
-@docs/DESIGN.md
-@docs/IMPLEMENTATION_PLAN.md
+@docs/plan.md
+@docs/SRD.md
 
 ## MCP reference
 
