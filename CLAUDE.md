@@ -15,7 +15,7 @@
 - Phase 3 Completed (Deferred - Cloudflare Worker for Save-Data, multi-language admin UI → carried to Phase 4)
 - Phase 4 Completed (Deferred - Per-chapter folder architecture/GitHub provisioning → Phase 5 scope. Implemented: events calendar, centralized email, resources page, certification tracking, client orgs management, multi-language admin UI, 10-page chapter sites)
 - Phase 5 Completed: AI editing via GitHub Actions + OpenCode (Gemini API), smart coach matching with Gemini reranking, enhanced deployment tracking with AI columns
-- Phase 6 Planned (Deferred): Payments (Stripe Connect + PayPal), analytics dashboard, email campaigns — UI mocked with sample data
+- Phase 6 Completed: Stripe Connect payments (no PayPal), real analytics via SQL RPCs, email campaigns with Resend batch API
 
 ## Next.js 16 Migration Notes
 

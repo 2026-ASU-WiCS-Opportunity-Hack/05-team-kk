@@ -4,7 +4,9 @@
  */
 
 const RESEND_API_URL = "https://api.resend.com/emails";
-const DEFAULT_FROM = "WIAL Platform <noreply@wial.ashwanthbk.com>";
+const DEFAULT_FROM =
+  Deno.env.get("RESEND_FROM_EMAIL") ??
+  "WIAL Platform <onboarding@resend.dev>";
 
 export interface SendEmailOptions {
   to: string | string[];

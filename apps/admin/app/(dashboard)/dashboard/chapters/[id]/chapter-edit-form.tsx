@@ -18,26 +18,9 @@ import { toast } from "sonner";
 import { Loader2, AlertTriangle } from "lucide-react";
 import type { Tables } from "@repo/types";
 import { useTranslations } from "next-intl";
+import { invokeEdgeFunctionWithAuth } from "@/lib/edge-functions";
 
 type Chapter = Tables<"chapters">;
-
-async function getFreshAccessToken(supabase: ReturnType<typeof createClient>) {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  const isSessionValid =
-    !!session?.access_token &&
-    (!session.expires_at || session.expires_at * 1000 > Date.now() + 60_000);
-
-  if (isSessionValid) {
-    return session!.access_token;
-  }
-
-  const { data, error } = await supabase.auth.refreshSession();
-  if (error) return null;
-  return data.session?.access_token ?? null;
-}
 
 export function ChapterEditForm({ chapter }: { chapter: Chapter }) {
   const router = useRouter();
@@ -49,31 +32,18 @@ export function ChapterEditForm({ chapter }: { chapter: Chapter }) {
   async function handleRetryProvision() {
     setProvisioning(true);
     const supabase = createClient();
-    const accessToken = await getFreshAccessToken(supabase);
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-
-    if (!accessToken) {
-      toast.error("Session expired. Please sign in again.");
-      setProvisioning(false);
-      return;
-    }
 
     try {
-      const res = await fetch(`${supabaseUrl}/functions/v1/provision-chapter`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-          apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
-        },
-        body: JSON.stringify({ chapter_id: chapter.id }),
-      });
-      if (res.ok) {
+      const { error } = await invokeEdgeFunctionWithAuth(
+        supabase,
+        "provision-chapter",
+        { chapter_id: chapter.id }
+      );
+      if (error) {
+        toast.error(error.message ?? t("errors.provisioningFailed"));
+      } else {
         toast.success(t("messages.provisionSuccess"));
         router.refresh();
-      } else {
-        const data = await res.json().catch(() => ({}));
-        toast.error(data.error ?? t("errors.provisioningFailed"));
       }
     } catch {
       toast.error(t("errors.networkProvisioning"));

@@ -1,6 +1,7 @@
 import { getAuthUser, isSuperAdmin } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { createClient } from "@repo/supabase/server";
 import {
   Card,
   CardContent,
@@ -16,16 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@repo/ui/table";
-import { DollarSign, TrendingUp, Building2, Info } from "lucide-react";
-
-const MOCK_CHAPTER_REVENUE = [
-  { chapter: "WIAL Nigeria", total: 125000, thisMonth: 32000, coaches: 18, status: "active" },
-  { chapter: "WIAL Brazil", total: 98000, thisMonth: 24500, coaches: 14, status: "active" },
-  { chapter: "WIAL USA", total: 215000, thisMonth: 41000, coaches: 32, status: "active" },
-  { chapter: "WIAL Philippines", total: 67000, thisMonth: 15000, coaches: 9, status: "active" },
-  { chapter: "WIAL Germany", total: 142000, thisMonth: 28000, coaches: 21, status: "active" },
-  { chapter: "WIAL Kenya", total: 45000, thisMonth: 11000, coaches: 7, status: "active" },
-];
+import { DollarSign, TrendingUp, Building2 } from "lucide-react";
 
 function formatCurrency(cents: number) {
   return new Intl.NumberFormat("en-US", {
@@ -42,28 +34,29 @@ export default async function RevenuePage() {
 
   if (!isSuperAdmin(user.roles)) redirect("/dashboard");
 
-  const totalRevenue = MOCK_CHAPTER_REVENUE.reduce((s, c) => s + c.total, 0);
-  const monthlyRevenue = MOCK_CHAPTER_REVENUE.reduce((s, c) => s + c.thisMonth, 0);
-  const totalCoaches = MOCK_CHAPTER_REVENUE.reduce((s, c) => s + c.coaches, 0);
+  const supabase = await createClient();
+
+  type RevenueRow = {
+    chapter_id: string;
+    chapter_name: string;
+    chapter_status: string;
+    total_collected: number;
+    this_month: number;
+    active_coaches: number;
+  };
+
+  const { data: rows } = await supabase.rpc("get_global_revenue_metrics");
+  const chapterRevenue: RevenueRow[] = (rows as RevenueRow[]) ?? [];
+
+  const totalRevenue = chapterRevenue.reduce((s, c) => s + (c.total_collected ?? 0), 0);
+  const monthlyRevenue = chapterRevenue.reduce((s, c) => s + (c.this_month ?? 0), 0);
+  const totalCoaches = chapterRevenue.reduce((s, c) => s + Number(c.active_coaches ?? 0), 0);
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">{t("revenue")}</h1>
-        <p className="text-muted-foreground">
-          {tui("description")}
-        </p>
-      </div>
-
-      {/* Coming Soon Banner */}
-      <div className="flex items-center gap-3 rounded-lg border border-info/30 bg-info/5 px-4 py-3">
-        <Info className="h-5 w-5 text-info shrink-0" />
-        <div>
-          <p className="text-sm font-medium">{tui("comingSoonTitle")}</p>
-          <p className="text-sm text-muted-foreground">
-            {tui("comingSoonDescription")}
-          </p>
-        </div>
+        <p className="text-muted-foreground">{tui("description")}</p>
       </div>
 
       {/* Summary Cards */}
@@ -75,7 +68,9 @@ export default async function RevenuePage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{formatCurrency(totalRevenue)}</p>
-            <p className="text-xs text-muted-foreground mt-1">{tui("cards.acrossChapters", { count: MOCK_CHAPTER_REVENUE.length })}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {tui("cards.acrossChapters", { count: chapterRevenue.length })}
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -85,7 +80,7 @@ export default async function RevenuePage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{formatCurrency(monthlyRevenue)}</p>
-            <p className="text-xs text-muted-foreground mt-1">{tui("cards.monthMarch2026")}</p>
+            <p className="text-xs text-muted-foreground mt-1">{tui("cards.currentMonth")}</p>
           </CardContent>
         </Card>
         <Card>
@@ -113,17 +108,27 @@ export default async function RevenuePage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {MOCK_CHAPTER_REVENUE.map((c) => (
-              <TableRow key={c.chapter}>
-                <TableCell className="font-medium">{c.chapter}</TableCell>
-                <TableCell>
-                  <Badge variant="default" className="capitalize">{tui(`status.${c.status}`)}</Badge>
+            {chapterRevenue.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                  No revenue data yet
                 </TableCell>
-                <TableCell>{c.coaches}</TableCell>
-                <TableCell className="text-right">{formatCurrency(c.thisMonth)}</TableCell>
-                <TableCell className="text-right font-medium">{formatCurrency(c.total)}</TableCell>
               </TableRow>
-            ))}
+            ) : (
+              chapterRevenue.map((c) => (
+                <TableRow key={c.chapter_id}>
+                  <TableCell className="font-medium">{c.chapter_name}</TableCell>
+                  <TableCell>
+                    <Badge variant="default" className="capitalize">
+                      {tui(`status.${c.chapter_status}`) || c.chapter_status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{c.active_coaches}</TableCell>
+                  <TableCell className="text-right">{formatCurrency(c.this_month)}</TableCell>
+                  <TableCell className="text-right font-medium">{formatCurrency(c.total_collected)}</TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

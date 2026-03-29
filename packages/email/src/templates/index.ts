@@ -11,4 +11,6 @@ export {
 export { contactForward, type ContactForwardVars } from "./contact-forward";
 export { eventReminder, type EventReminderVars } from "./event-reminder";
 export { newsletter, type NewsletterVars } from "./newsletter";
+export { paymentReceipt, type PaymentReceiptVars } from "./payment-receipt";
+export { duesReminder, type DuesReminderVars } from "./dues-reminder";
 export { type BrandingOptions } from "../layout";

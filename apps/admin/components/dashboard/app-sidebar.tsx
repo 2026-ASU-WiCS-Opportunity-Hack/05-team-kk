@@ -33,6 +33,7 @@ import {
   CreditCard,
   BarChart3,
   DollarSign,
+  Megaphone,
 } from "lucide-react";
 
 type NavItem = {
@@ -55,6 +56,7 @@ function getNavItems(
       { title: t("users"), href: "/dashboard/users", icon: UserCog },
       { title: t("revenue"), href: "/dashboard/revenue", icon: DollarSign },
       { title: t("analytics"), href: "/dashboard/analytics", icon: BarChart3 },
+      { title: t("campaigns"), href: "/dashboard/campaigns", icon: Megaphone },
       { title: t("settings"), href: "/dashboard/settings", icon: Settings },
     ];
   }
@@ -71,6 +73,7 @@ function getNavItems(
       { title: t("users"), href: "/dashboard/users", icon: UserCog },
       { title: t("deployments"), href: "/dashboard/deployments", icon: Rocket },
       { title: t("payments"), href: "/dashboard/payments", icon: CreditCard },
+      { title: t("campaigns"), href: "/dashboard/campaigns", icon: Megaphone },
       { title: t("chapterSettings"), href: "/dashboard/settings", icon: Settings },
     ];
   }

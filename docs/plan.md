@@ -1,6 +1,6 @@
 # WIAL Global Chapter Network Platform — Plan
 
-Consolidated reference for the platform. Phases 1-5 are complete. Phase 6 is planned but deferred.
+Consolidated reference for the platform. Phases 1-6 are complete.
 
 ---
 
@@ -30,39 +30,48 @@ supabase/                    → Migrations, seed data, Edge Functions
 
 ### Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Monorepo | Turborepo + Yarn |
-| Admin | Next.js 16 on Vercel |
-| Chapter Sites | Astro on Cloudflare Pages |
-| Backend | Supabase Cloud (PostgreSQL, Auth, RLS, Edge Functions, Realtime, Storage) |
-| Vector Search | pgvector (768 dim, Gemini text-embedding-004) |
-| AI | Gemini API (content gen, translation, embeddings, coach matching, AI editing) |
-| Deployment | Per-chapter folders → GitHub → Cloudflare Pages auto-deploy |
-| Email | Resend via `packages/email/` |
-| Styling | Tailwind CSS + CSS custom properties |
-| UI Components | shadcn/ui (Radix) |
-| Content Editing | Tiptap WYSIWYG |
-| i18n | next-intl (admin), locale routes (chapter sites) |
+| Layer           | Technology                                                                    |
+| --------------- | ----------------------------------------------------------------------------- |
+| Monorepo        | Turborepo + Yarn                                                              |
+| Admin           | Next.js 16 on Vercel                                                          |
+| Chapter Sites   | Astro on Cloudflare Pages                                                     |
+| Backend         | Supabase Cloud (PostgreSQL, Auth, RLS, Edge Functions, Realtime, Storage)     |
+| Vector Search   | pgvector (768 dim, Gemini text-embedding-004)                                 |
+| AI              | Gemini API (content gen, translation, embeddings, coach matching, AI editing) |
+| Deployment      | Per-chapter folders → GitHub → Cloudflare Pages auto-deploy                   |
+| Email           | Resend via `packages/email/`                                                  |
+| Styling         | Tailwind CSS + CSS custom properties                                          |
+| UI Components   | shadcn/ui (Radix)                                                             |
+| Content Editing | Tiptap WYSIWYG                                                                |
+| i18n            | next-intl (admin), locale routes (chapter sites)                              |
 
 ---
 
 ## Completed Phases Summary
 
 ### Phase 1 — Foundation
+
 Auth (email+password), invitation-driven onboarding, RLS chapter isolation, chapter CRUD with branding, user management, coach directory (chapter + global + self-edit), content blocks (Tiptap WYSIWYG, plain text, image URL, JSON), testimonials management, dark/light mode.
 
 ### Phase 2 — Chapter Site Creation
+
 Astro template (8 pages), per-chapter branding via CSS custom properties, header nav + full footer, chapter provisioning to Cloudflare Pages, deployment pipeline with Realtime status, contact form via Edge Function + Resend, accessibility baseline (WCAG AA).
 
 ### Phase 3 — AI Features
+
 Cross-lingual semantic search (Gemini embeddings + pgvector + HNSW), AI content generation (Gemini), AI translation with cultural adaptation, multi-language content (per-locale blocks, language routing, header switcher), low-bandwidth optimization (WebP, lazy loading, responsive images).
 
 ### Phase 4 — Per-Chapter Architecture, Events, Email
+
 Per-chapter folder architecture, base template propagation via Cloudflare build watch paths, centralized email service (`packages/email/`), events calendar (admin + chapter sites), resources & library page, certification info section, coach certification tracking (recertification dates, CE credits, approval workflow), automated certification reminders (pg_cron at 90/60/30 days), client organizations table, 10-page chapter sites, multi-language admin UI (next-intl en/es/fr/pt).
 
 ### Phase 5 — AI Editing & Smart Coach Matching
+
 Session-based AI editing: start session (GitHub branch) → send prompt(s) (GitHub Actions + Gemini) → Cloudflare branch preview → deploy (squash-merge) or discard. Scoped to chapter folders only. Smart coach matching: "Find a Coach" widget with Gemini embedding + vector search + reranking with explanations. Enhanced deployment history with AI prompt column, preview URL, approval status.
+
+### Phase 6 — Payments, Analytics, Email Campaigns
+
+Stripe Connect (Express accounts, no PayPal): chapter leads connect Stripe → create checkout sessions for enrollment ($50), certification ($30), dues, events → webhook updates payment status + sends receipts. Real analytics via SQL RPCs (`get_chapter_payment_metrics`, `get_chapter_business_metrics`, `get_global_revenue_metrics`) replacing all mock data. Email campaigns: draft → send to newsletter subscribers via Resend batch API. Weekly dues reminder via pg_cron. Campaigns page added to sidebar for super_admin + chapter_lead.
 
 ---
 
@@ -70,7 +79,7 @@ Session-based AI editing: start session (GitHub branch) → send prompt(s) (GitH
 
 ### Tables
 
-**Chapters** — id, name, slug, subdomain, status (active/suspended/archived), brand colors (primary/secondary/accent), brand_logo_url, brand_font, contact info, default_language, active_languages[], cloudflare_project_name, cloudflare_deploy_hook_url, github_folder_path, timestamps.
+**Chapters** — id, name, slug, subdomain, status (active/suspended/archived), brand colors (primary/secondary/accent), brand_logo_url, brand_font, contact info, default_language, active_languages[], cloudflare_project_name, cloudflare_deploy_hook_url, github_folder_path, stripe_account_id, stripe_onboarding_complete, timestamps.
 
 **Profiles** — id (FK auth.users), email, full_name, avatar_url, timestamps.
 
@@ -92,9 +101,14 @@ Session-based AI editing: start session (GitHub branch) → send prompt(s) (GitH
 
 **Newsletter Subscribers** — id, chapter_id, email, name, subscribed_at, is_active. Unique: (chapter_id, email).
 
+**Payments** — id, chapter_id, payer_id (nullable FK profiles), payer_email, payment_provider (stripe only), provider_transaction_id (unique), stripe_checkout_session_id (unique), amount (cents, >0), currency, payment_type (enrollment/certification/dues/event), status (pending/completed/failed/refunded), description, receipt_sent, idempotency_key (unique), timestamps. No RLS insert/update — service role only.
+
+**Email Campaigns** — id, chapter_id (nullable = global), created_by (FK profiles), subject, body, audience_filter (jsonb), status (draft/sending/sent/failed), recipient_count, sent_at, timestamps.
+
 **Global Coaches** — materialized view of active + approved coaches from active chapters. Refreshed via triggers.
 
 ### Key RLS Patterns
+
 - Chapters: authenticated read (active only, super admins see all). Super admin insert/update. Chapter leads update branding/contact only.
 - Coaches: public read (active + approved in active chapters). Self-edit restricted fields. Chapter leads/super admins full CRUD.
 - Content Blocks: public read (active chapters). Chapter leads, content creators, super admins edit.
@@ -102,11 +116,12 @@ Session-based AI editing: start session (GitHub branch) → send prompt(s) (GitH
 - Deployments: read by chapter leads (own) + super admins. Insert/update via Edge Functions only.
 
 ### Automation
+
 - Updated-at triggers on all mutable tables
 - Profile creation trigger on auth.users insert
 - Materialized view refresh on coach/chapter changes
 - Embedding generation on coach bio/specialization changes (pg_net → Edge Function)
-- pg_cron: daily certification reminders (90/60/30 days), daily event reminders (7 days out)
+- pg_cron: daily certification reminders (90/60/30 days), daily event reminders (7 days out), weekly dues reminders (Mondays 09:00 UTC)
 
 ---
 
@@ -144,45 +159,64 @@ Rate limit: 1 active session per chapter. Scope: `apps/chapter-{slug}/` only.
 
 ---
 
-## Phase 6 — Payments & Analytics (Deferred)
-
-UI mocked with sample data. Implementation deferred until platform stable.
+## Phase 6 — Payments, Analytics, Email Campaigns (Completed)
 
 ### 6.1 Payments
-- Stripe Connect (platform mode): WIAL Global = platform, each chapter = connected account
-- PayPal for Marketplaces: same pattern
-- Payment types: $50/student enrolled, $30/student certified, chapter membership dues, event registration fees
-- Edge Functions handle checkout creation + webhook verification
-- Automated dues reminders (pg_cron weekly)
-- **Payments table:** id, chapter_id, payer_id, payer_email, payment_provider (stripe/paypal), provider_transaction_id, amount (cents), currency, payment_type (enrollment/certification/dues/event), status (pending/completed/failed/refunded), description, receipt_sent, created_at
+
+- **Stripe Connect Express** (no PayPal): WIAL Global = platform, each chapter = connected account
+- Chapter lead clicks "Connect Stripe" → `/api/stripe/connect` POST → creates Express account + Account Link → Stripe hosted onboarding → callback at `/api/stripe/connect/callback` updates `stripe_onboarding_complete`
+- Payment types: enrollment ($50 fixed), certification ($30 fixed), dues (custom amount), event (custom amount)
+- `create-checkout` Edge Function: validates role + chapter Stripe status → Stripe Checkout Session REST API → inserts pending payment record → returns hosted checkout URL
+- `stripe-connect-webhook` Edge Function: HMAC-SHA256 signature verification + 5-min replay protection → handles `checkout.session.completed` (update status + send receipt), `payment_intent.payment_failed`, `charge.refunded`, `account.updated`
+- Automated dues reminders: pg_cron weekly (Mondays 09:00 UTC) → `send-dues-reminder` Edge Function → emails all chapter leads with Stripe connected
+- Rate limit: 10 checkout creations/hour/chapter
 
 ### 6.2 Analytics
-- Cloudflare Analytics API for traffic (free, no tracking scripts)
-- Supabase aggregate queries for business metrics
-- Chapter-level: page views, contact submissions, event registrations, coach searches
-- Global: chapter/coach counts, membership growth, revenue by chapter
+
+- Business metrics via SQL RPCs (real data, no mock):
+  - `get_chapter_payment_metrics(chapter_id)` → total collected, outstanding, this month, by type
+  - `get_chapter_business_metrics(chapter_id)` → active coaches, upcoming events, newsletter subscribers
+  - `get_global_revenue_metrics()` → per-chapter revenue breakdown for super admin revenue page
+- Cloudflare Analytics traffic chart: placeholder (Cloudflare Analytics API integration deferred — no tracking scripts needed)
 
 ### 6.3 Email Campaigns
-- Broadcast campaigns from admin dashboard
-- Segment by chapter, certification level, membership status
-- Resend batch API
-- **Campaigns table:** id, chapter_id, subject, body, audience_filter, sent_at, recipient_count
+
+- Campaigns page (`/dashboard/campaigns`) for chapter_lead + super_admin
+- Create campaign (subject + HTML body) → saved as draft → "Send" calls `send-campaign` Edge Function
+- `send-campaign`: fetches active `newsletter_subscribers` filtered by `audience_filter` → Resend batch API (100 emails/batch) → updates status/count/sent_at
+- Audience filter: chapter-scoped (chapter_lead campaigns) or global (super_admin)
+
+### Required Env Vars (Production)
+
+| Variable | Where |
+|---|---|
+| `STRIPE_SECRET_KEY` | Vercel + Supabase secrets |
+| `STRIPE_WEBHOOK_SECRET` | Supabase secrets only |
+| `ADMIN_DASHBOARD_URL` | Supabase secrets (email links + Stripe redirect) |
+| `NEXT_PUBLIC_ADMIN_URL` | Vercel (Stripe callback redirect) |
+| `RESEND_API_KEY` | Supabase secrets (already set) |
+
+Webhook endpoint: `https://gknwmdskojzpzzwuixhl.supabase.co/functions/v1/stripe-connect-webhook`
+Events: `checkout.session.completed`, `payment_intent.payment_failed`, `charge.refunded`, `account.updated`
 
 ---
 
 ## Design System (Quick Reference)
 
 ### Colors
+
 - **Admin palette (fixed):** Warm ivory bg, deep teal primary (~#1A7A8A), WIAL golden yellow secondary (~#D4A900), WIAL crimson accent (~#C8102E), warm charcoal text
 - **Chapter defaults:** Deep teal primary, lighter teal secondary, golden yellow accent. Header always white.
 - **Certification levels:** CALC = blue, SALC = green, MALC = amber, PALC = plum-purple
 - **Dark mode:** Admin only. Warm charcoal surfaces, never pure black. Chapter sites light-only.
 
 ### Typography
+
 - Headings: Lexend. Body: Source Sans 3. Monospace: JetBrains Mono (admin logs only).
 - System font stack recommended for low-bandwidth chapters.
 
 ### Key Design Rules
+
 - WIAL logo always on white/light background
 - Header always white on chapter sites
 - Sidebar always dark charcoal with light logo zone at top
@@ -194,6 +228,7 @@ UI mocked with sample data. Implementation deferred until platform stable.
 - Reduced motion: instant state changes, no animations
 
 ### Chapter Website Pages (10)
+
 1. Landing/Hero
 2. About
 3. Action Learning & Certification
@@ -206,6 +241,7 @@ UI mocked with sample data. Implementation deferred until platform stable.
 10. Membership/Join
 
 ### Performance Budgets
+
 - Landing: ≤200KB, Directory: ≤500KB, Image-heavy: ≤800KB
 - JS: <100KB on content pages
 - Images: AVIF → WebP → JPEG, no single image >50KB, lazy-load below fold

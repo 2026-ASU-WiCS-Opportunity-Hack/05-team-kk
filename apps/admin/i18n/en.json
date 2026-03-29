@@ -18,7 +18,8 @@
     "aiEditor": "AI Editor",
     "payments": "Payments",
     "revenue": "Revenue",
-    "analytics": "Analytics"
+    "analytics": "Analytics",
+    "campaigns": "Campaigns"
   },
   "common": {
     "save": "Save",
@@ -805,14 +806,13 @@
     "analytics": {
       "descriptionGlobal": "Platform-wide traffic and engagement metrics.",
       "descriptionChapter": "Website traffic and engagement metrics for your chapter.",
-      "comingSoonTitle": "Coming Soon",
-      "comingSoonDescription": "Detailed analytics powered by Cloudflare Analytics API is under development. The data below is sample data for preview purposes.",
       "cards": {
-        "pageViews": "Page Views",
-        "uniqueVisitors": "Unique Visitors",
-        "contactSubmissions": "Contact Submissions",
-        "eventRegistrations": "Event Registrations",
-        "last30Days": "Last 30 days"
+        "activeCoaches": "Active Coaches",
+        "approvedActive": "Approved and active",
+        "upcomingEvents": "Upcoming Events",
+        "published": "Published",
+        "subscribers": "Newsletter Subscribers",
+        "newsletterSubscribers": "Active subscribers"
       },
       "traffic": {
         "title": "Website Traffic",
@@ -833,22 +833,60 @@
         }
       }
     },
+    "campaigns": {
+      "description": "Send email campaigns to your newsletter subscribers.",
+      "newCampaign": "New Campaign",
+      "noCampaigns": "No campaigns yet.",
+      "send": "Send",
+      "table": {
+        "title": "Email Campaigns",
+        "subject": "Subject",
+        "status": "Status",
+        "recipients": "Recipients",
+        "sentAt": "Sent"
+      },
+      "status": {
+        "draft": "Draft",
+        "sending": "Sending",
+        "sent": "Sent",
+        "failed": "Failed"
+      },
+      "createDialog": {
+        "title": "New Campaign",
+        "subject": "Subject",
+        "subjectPlaceholder": "e.g. March newsletter from WIAL",
+        "body": "Email Body (HTML)",
+        "bodyPlaceholder": "<p>Hello,</p>\n<p>Your message here...</p>",
+        "bodyHint": "HTML is supported. Plain text also works.",
+        "save": "Save as Draft"
+      }
+    },
     "payments": {
       "selectChapter": "Select a chapter to view payments.",
       "description": "Track payments and manage dues collection.",
-      "comingSoonTitle": "Coming Soon",
-      "comingSoonDescription": "Payment processing via Stripe Connect and PayPal is under development. The data below is sample data for preview purposes.",
+      "noPayments": "No payments yet.",
+      "stripeConnected": "Stripe Connected",
       "cards": {
         "totalCollected": "Total Collected",
         "allTime": "All time",
         "outstanding": "Outstanding",
         "pendingPayments": "Pending payments",
         "thisMonth": "This Month",
-        "monthMarch2026": "March 2026"
+        "currentMonth": "Current month"
       },
       "actions": {
-        "connectStripe": "Connect Stripe (Coming Soon)",
-        "connectPaypal": "Connect PayPal (Coming Soon)"
+        "connectStripe": "Connect Stripe",
+        "resumeStripeOnboarding": "Resume Stripe Onboarding",
+        "createPayment": "Create Payment"
+      },
+      "createDialog": {
+        "title": "Create Payment Request",
+        "payerEmail": "Payer Email",
+        "amountCents": "Amount (in cents)",
+        "amountHint": "Enter amount in cents, e.g. 10000 = $100.00",
+        "description": "Description (optional)",
+        "descriptionPlaceholder": "e.g. CALC certification payment",
+        "submit": "Open Checkout"
       },
       "table": {
         "payer": "Payer",
@@ -872,13 +910,11 @@
     },
     "revenue": {
       "description": "Global payment overview across all chapters.",
-      "comingSoonTitle": "Coming Soon",
-      "comingSoonDescription": "Global revenue tracking and reporting is under development. The data below is sample data for preview purposes.",
       "cards": {
         "totalRevenue": "Total Revenue",
         "acrossChapters": "Across {count} chapters",
         "thisMonth": "This Month",
-        "monthMarch2026": "March 2026",
+        "currentMonth": "Current month",
         "activeCoaches": "Active Coaches",
         "generatingRevenue": "Generating revenue"
       },
@@ -890,7 +926,9 @@
         "totalRevenue": "Total Revenue"
       },
       "status": {
-        "active": "Active"
+        "active": "Active",
+        "suspended": "Suspended",
+        "archived": "Archived"
       }
     },
     "clients": {

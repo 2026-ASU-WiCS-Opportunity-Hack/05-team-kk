@@ -32,6 +32,8 @@ export type Database = {
           name: string
           slug: string
           status: string
+          stripe_account_id: string | null
+          stripe_onboarding_complete: boolean
           subdomain: string
           updated_at: string
         }
@@ -54,6 +56,8 @@ export type Database = {
           name: string
           slug: string
           status?: string
+          stripe_account_id?: string | null
+          stripe_onboarding_complete?: boolean
           subdomain: string
           updated_at?: string
         }
@@ -76,6 +80,8 @@ export type Database = {
           name?: string
           slug?: string
           status?: string
+          stripe_account_id?: string | null
+          stripe_onboarding_complete?: boolean
           subdomain?: string
           updated_at?: string
         }
@@ -470,6 +476,63 @@ export type Database = {
           },
         ]
       }
+      email_campaigns: {
+        Row: {
+          audience_filter: Json
+          body: string
+          chapter_id: string | null
+          created_at: string
+          created_by: string
+          id: string
+          recipient_count: number | null
+          sent_at: string | null
+          status: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          audience_filter?: Json
+          body: string
+          chapter_id?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          recipient_count?: number | null
+          sent_at?: string | null
+          status?: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          audience_filter?: Json
+          body?: string
+          chapter_id?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          recipient_count?: number | null
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_campaigns_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "chapters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_campaigns_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       newsletter_subscribers: {
         Row: {
           chapter_id: string
@@ -501,6 +564,78 @@ export type Database = {
             columns: ["chapter_id"]
             isOneToOne: false
             referencedRelation: "chapters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount: number
+          chapter_id: string
+          created_at: string
+          currency: string
+          description: string | null
+          id: string
+          idempotency_key: string | null
+          payer_email: string
+          payer_id: string | null
+          payment_provider: string
+          payment_type: string
+          provider_transaction_id: string | null
+          receipt_sent: boolean
+          status: string
+          stripe_checkout_session_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          chapter_id: string
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          idempotency_key?: string | null
+          payer_email: string
+          payer_id?: string | null
+          payment_provider?: string
+          payment_type: string
+          provider_transaction_id?: string | null
+          receipt_sent?: boolean
+          status?: string
+          stripe_checkout_session_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          chapter_id?: string
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          idempotency_key?: string | null
+          payer_email?: string
+          payer_id?: string | null
+          payment_provider?: string
+          payment_type?: string
+          provider_transaction_id?: string | null
+          receipt_sent?: boolean
+          status?: string
+          stripe_checkout_session_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "chapters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_payer_id_fkey"
+            columns: ["payer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -674,6 +809,37 @@ export type Database = {
         Returns: boolean
       }
       is_super_admin: { Args: never; Returns: boolean }
+      get_chapter_payment_metrics: {
+        Args: { p_chapter_id: string }
+        Returns: {
+          total_collected: number
+          outstanding: number
+          this_month: number
+          enrollment_total: number
+          certification_total: number
+          dues_total: number
+          event_total: number
+        }[]
+      }
+      get_chapter_business_metrics: {
+        Args: { p_chapter_id: string }
+        Returns: {
+          active_coaches: number
+          upcoming_events: number
+          active_subscribers: number
+        }[]
+      }
+      get_global_revenue_metrics: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          chapter_id: string
+          chapter_name: string
+          chapter_status: string
+          total_collected: number
+          this_month: number
+          active_coaches: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

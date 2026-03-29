@@ -2,6 +2,7 @@ import { getAuthUser, isSuperAdmin } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { getTranslations } from "next-intl/server";
+import { createClient } from "@repo/supabase/server";
 import {
   Card,
   CardContent,
@@ -9,7 +10,6 @@ import {
   CardTitle,
 } from "@repo/ui/card";
 import { Badge } from "@repo/ui/badge";
-import { Button } from "@repo/ui/button";
 import {
   Table,
   TableBody,
@@ -19,21 +19,12 @@ import {
   TableRow,
 } from "@repo/ui/table";
 import {
-  CreditCard,
   DollarSign,
   Clock,
   TrendingUp,
-  Info,
+  CheckCircle2,
 } from "lucide-react";
-
-const MOCK_PAYMENTS = [
-  { id: "1", payer: "Maria Santos", email: "maria@example.com", type: "enrollment", amount: 5000, currency: "usd", status: "completed", date: "2026-03-15" },
-  { id: "2", payer: "James Okafor", email: "james@example.com", type: "certification", amount: 3000, currency: "usd", status: "completed", date: "2026-03-12" },
-  { id: "3", payer: "Anh Nguyen", email: "anh@example.com", type: "dues", amount: 15000, currency: "usd", status: "pending", date: "2026-03-10" },
-  { id: "4", payer: "Carlos Rivera", email: "carlos@example.com", type: "event", amount: 7500, currency: "usd", status: "completed", date: "2026-03-08" },
-  { id: "5", payer: "Elena Fischer", email: "elena@example.com", type: "enrollment", amount: 5000, currency: "usd", status: "failed", date: "2026-03-05" },
-  { id: "6", payer: "Priya Sharma", email: "priya@example.com", type: "certification", amount: 3000, currency: "usd", status: "completed", date: "2026-03-01" },
-];
+import { PaymentsClient } from "./payments-client";
 
 const typeBadge: Record<string, string> = {
   enrollment: "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300",
@@ -49,7 +40,7 @@ const statusBadge: Record<string, "default" | "secondary" | "destructive" | "out
   refunded: "outline",
 };
 
-function formatCurrency(cents: number, currency: string) {
+function formatCurrency(cents: number, currency = "usd") {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: currency.toUpperCase(),
@@ -77,29 +68,63 @@ export default async function PaymentsPage() {
     );
   }
 
-  const totalCollected = 23500;
-  const outstanding = 15000;
-  const thisMonth = 15500;
+  const supabase = await createClient();
+
+  // Fetch chapter stripe status
+  let stripeConnected = false;
+  let stripeComplete = false;
+  let activeChapterId = chapterId;
+
+  if (chapterId) {
+    const { data: chapter } = await supabase
+      .from("chapters")
+      .select("stripe_account_id, stripe_onboarding_complete")
+      .eq("id", chapterId)
+      .single();
+
+    stripeConnected = !!chapter?.stripe_account_id;
+    stripeComplete = chapter?.stripe_onboarding_complete ?? false;
+  }
+
+  // Fetch payment metrics via RPC
+  let metrics = { total_collected: 0, outstanding: 0, this_month: 0 };
+  if (chapterId) {
+    const { data } = await supabase.rpc("get_chapter_payment_metrics", {
+      p_chapter_id: chapterId,
+    });
+    if (data && data.length > 0) {
+      metrics = data[0];
+    }
+  }
+
+  // Fetch recent payments
+  type Payment = {
+    id: string;
+    payer_email: string;
+    payment_type: string;
+    amount: number;
+    currency: string;
+    status: string;
+    created_at: string;
+  };
+
+  let payments: Payment[] = [];
+  if (chapterId) {
+    const { data } = await supabase
+      .from("payments")
+      .select("id, payer_email, payment_type, amount, currency, status, created_at")
+      .eq("chapter_id", chapterId)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    payments = (data as Payment[]) ?? [];
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">{t("payments")}</h1>
-          <p className="text-muted-foreground">
-            {tui("description")}
-          </p>
-        </div>
-      </div>
-
-      {/* Coming Soon Banner */}
-      <div className="flex items-center gap-3 rounded-lg border border-info/30 bg-info/5 px-4 py-3">
-        <Info className="h-5 w-5 text-info shrink-0" />
-        <div>
-          <p className="text-sm font-medium">{tui("comingSoonTitle")}</p>
-          <p className="text-sm text-muted-foreground">
-            {tui("comingSoonDescription")}
-          </p>
+          <p className="text-muted-foreground">{tui("description")}</p>
         </div>
       </div>
 
@@ -111,7 +136,7 @@ export default async function PaymentsPage() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{formatCurrency(totalCollected, "usd")}</p>
+            <p className="text-2xl font-bold">{formatCurrency(metrics.total_collected)}</p>
             <p className="text-xs text-muted-foreground mt-1">{tui("cards.allTime")}</p>
           </CardContent>
         </Card>
@@ -121,7 +146,7 @@ export default async function PaymentsPage() {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{formatCurrency(outstanding, "usd")}</p>
+            <p className="text-2xl font-bold">{formatCurrency(metrics.outstanding)}</p>
             <p className="text-xs text-muted-foreground mt-1">{tui("cards.pendingPayments")}</p>
           </CardContent>
         </Card>
@@ -131,23 +156,26 @@ export default async function PaymentsPage() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{formatCurrency(thisMonth, "usd")}</p>
-            <p className="text-xs text-muted-foreground mt-1">{tui("cards.monthMarch2026")}</p>
+            <p className="text-2xl font-bold">{formatCurrency(metrics.this_month)}</p>
+            <p className="text-xs text-muted-foreground mt-1">{tui("cards.currentMonth")}</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Connect Buttons */}
-      <div className="flex gap-3">
-        <Button disabled variant="outline" className="gap-2">
-          <CreditCard className="h-4 w-4" />
-          {tui("actions.connectStripe")}
-        </Button>
-        <Button disabled variant="outline" className="gap-2">
-          <CreditCard className="h-4 w-4" />
-          {tui("actions.connectPaypal")}
-        </Button>
-      </div>
+      {/* Stripe Connect / Create Payment — client component handles interactivity */}
+      <PaymentsClient
+        chapterId={activeChapterId ?? null}
+        stripeConnected={stripeConnected}
+        stripeComplete={stripeComplete}
+      />
+
+      {/* Stripe connected badge */}
+      {stripeComplete && (
+        <div className="flex items-center gap-2 text-sm text-emerald-600 dark:text-emerald-400">
+          <CheckCircle2 className="h-4 w-4" />
+          <span>{tui("stripeConnected")}</span>
+        </div>
+      )}
 
       {/* Payments Table */}
       <div className="rounded-md border">
@@ -162,32 +190,41 @@ export default async function PaymentsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {MOCK_PAYMENTS.map((p) => (
-              <TableRow key={p.id}>
-                <TableCell>
-                  <div>
-                    <p className="font-medium">{p.payer}</p>
-                    <p className="text-sm text-muted-foreground">{p.email}</p>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${typeBadge[p.type] ?? "bg-muted text-muted-foreground"}`}>
-                    {tui(`types.${p.type}`)}
-                  </span>
-                </TableCell>
-                <TableCell className="font-medium">
-                  {formatCurrency(p.amount, p.currency)}
-                </TableCell>
-                <TableCell>
-                  <Badge variant={statusBadge[p.status] ?? "outline"} className="capitalize">
-                    {tui(`status.${p.status}`)}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {new Date(p.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+            {payments.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                  {tui("noPayments")}
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              payments.map((p) => (
+                <TableRow key={p.id}>
+                  <TableCell>
+                    <p className="text-sm text-muted-foreground">{p.payer_email}</p>
+                  </TableCell>
+                  <TableCell>
+                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${typeBadge[p.payment_type] ?? "bg-muted text-muted-foreground"}`}>
+                      {tui(`types.${p.payment_type}`)}
+                    </span>
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    {formatCurrency(p.amount, p.currency)}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={statusBadge[p.status] ?? "outline"} className="capitalize">
+                      {tui(`status.${p.status}`)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {new Date(p.created_at).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

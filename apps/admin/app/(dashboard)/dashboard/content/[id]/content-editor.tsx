@@ -30,6 +30,7 @@ import { TiptapEditor } from "@/components/tiptap-editor";
 import { ResourcesEditor } from "@/components/resources-editor";
 import type { Tables } from "@repo/types";
 import { useTranslations } from "next-intl";
+import { invokeEdgeFunctionWithAuth } from "@/lib/edge-functions";
 
 type ContentBlock = Tables<"content_blocks">;
 
@@ -65,24 +66,6 @@ const contentTypeOptions = [
   "join",
   "custom",
 ];
-
-async function getFreshAccessToken(supabase: ReturnType<typeof createClient>) {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  const isSessionValid =
-    !!session?.access_token &&
-    (!session.expires_at || session.expires_at * 1000 > Date.now() + 60_000);
-
-  if (isSessionValid) {
-    return session!.access_token;
-  }
-
-  const { data, error } = await supabase.auth.refreshSession();
-  if (error) return null;
-  return data.session?.access_token ?? null;
-}
 
 export function ContentEditor({
   block,
@@ -173,40 +156,26 @@ export function ContentEditor({
     setGeneratedContent("");
 
     const supabase = createClient();
-    const accessToken = await getFreshAccessToken(supabase);
-    if (!accessToken) {
-      toast.error("Session expired. Please sign in again.");
-      setGenerating(false);
-      return;
-    }
-
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 
     try {
-      const res = await fetch(
-        `${supabaseUrl}/functions/v1/generate-content`,
+      const { data, error } = await invokeEdgeFunctionWithAuth(
+        supabase,
+        "generate-content",
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-            apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
-          },
-          body: JSON.stringify({
-            chapter_id: chapterId,
-            content_type: generateType,
-            custom_prompt: generateType === "custom" ? customPrompt : undefined,
-            block_key: block.block_key,
-            output_format: block.content_type,
-          }),
+          chapter_id: chapterId,
+          content_type: generateType,
+          custom_prompt: generateType === "custom" ? customPrompt : undefined,
+          block_key: block.block_key,
+          output_format: block.content_type,
         }
       );
 
-      const data = await res.json();
-      if (res.ok && data.content) {
+      if (error) {
+        toast.error(t("errors.generationFailed"));
+      } else if (data?.content) {
         setGeneratedContent(data.content);
       } else {
-        toast.error(data.error ?? t("errors.generationFailed"));
+        toast.error(data?.error ?? t("errors.generationFailed"));
       }
     } catch {
       toast.error(t("errors.networkGeneration"));
@@ -227,40 +196,26 @@ export function ContentEditor({
     setTranslatedContent("");
 
     const supabase = createClient();
-    const accessToken = await getFreshAccessToken(supabase);
-    if (!accessToken) {
-      toast.error("Session expired. Please sign in again.");
-      setTranslating(false);
-      return;
-    }
-
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 
     try {
-      const res = await fetch(
-        `${supabaseUrl}/functions/v1/translate-content`,
+      const { data, error } = await invokeEdgeFunctionWithAuth(
+        supabase,
+        "translate-content",
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-            apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
-          },
-          body: JSON.stringify({
-            chapter_id: chapterId,
-            source_content: content,
-            source_locale: block.locale,
-            target_locale: targetLocale,
-            content_type: block.content_type,
-          }),
+          chapter_id: chapterId,
+          source_content: content,
+          source_locale: block.locale,
+          target_locale: targetLocale,
+          content_type: block.content_type,
         }
       );
 
-      const data = await res.json();
-      if (res.ok && data.content) {
+      if (error) {
+        toast.error(t("errors.translationFailed"));
+      } else if (data?.content) {
         setTranslatedContent(data.content);
       } else {
-        toast.error(data.error ?? t("errors.translationFailed"));
+        toast.error(data?.error ?? t("errors.translationFailed"));
       }
     } catch {
       toast.error(t("errors.networkTranslation"));

@@ -10,30 +10,13 @@ import { Label } from "@repo/ui/label";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { invokeEdgeFunctionWithAuth } from "@/lib/edge-functions";
 
 function slugify(text: string): string {
   return text
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
-}
-
-async function getFreshAccessToken(supabase: ReturnType<typeof createClient>) {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  const isSessionValid =
-    !!session?.access_token &&
-    (!session.expires_at || session.expires_at * 1000 > Date.now() + 60_000);
-
-  if (isSessionValid) {
-    return session!.access_token;
-  }
-
-  const { data, error } = await supabase.auth.refreshSession();
-  if (error) return null;
-  return data.session?.access_token ?? null;
 }
 
 export default function CreateChapterPage() {
@@ -92,37 +75,18 @@ export default function CreateChapterPage() {
       return;
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-    const accessToken = await getFreshAccessToken(supabase);
-
     // 2. Call provision-chapter Edge Function (best-effort)
-    if (accessToken) {
-      try {
-        const provRes = await fetch(
-          `${supabaseUrl}/functions/v1/provision-chapter`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${accessToken}`,
-              apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
-            },
-            body: JSON.stringify({ chapter_id: chapter.id }),
-          }
-        );
-        if (!provRes.ok) {
-          const data = await provRes.json().catch(() => ({}));
-          console.warn("Provisioning warning:", data);
-          toast.warning(
-            t("warnings.provisioningFailed")
-          );
-        }
-      } catch {
-        toast.warning(
-          t("warnings.provisioningFailed")
-        );
+    try {
+      const { error: provError } = await invokeEdgeFunctionWithAuth(
+        supabase,
+        "provision-chapter",
+        { chapter_id: chapter.id }
+      );
+      if (provError) {
+        console.warn("Provisioning warning:", provError);
+        toast.warning(t("warnings.provisioningFailed"));
       }
-    } else {
+    } catch {
       toast.warning(t("warnings.provisioningFailed"));
     }
 
@@ -145,20 +109,12 @@ export default function CreateChapterPage() {
 
       if (invitation) {
         // Send invitation email (best-effort)
-        if (accessToken) {
-          try {
-            await fetch(`${supabaseUrl}/functions/v1/send-invitation`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${accessToken}`,
-                apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
-              },
-              body: JSON.stringify({ invitation_id: invitation.id }),
-            });
-          } catch {
-            console.warn("Failed to send lead invitation email");
-          }
+        try {
+          await invokeEdgeFunctionWithAuth(supabase, "send-invitation", {
+            invitation_id: invitation.id,
+          });
+        } catch {
+          console.warn("Failed to send lead invitation email");
         }
       }
     }
