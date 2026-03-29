@@ -9,7 +9,7 @@
 ## Team "Team KK"
 
 - Ashwanth Balakrishnan
-- keerthana jayaraman
+- Keerthana Jayaraman
 
 ## Project Overview
 
