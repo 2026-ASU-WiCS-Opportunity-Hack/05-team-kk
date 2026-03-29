@@ -87,6 +87,7 @@ export default function CreateChapterPage() {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${accessToken}`,
+            apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
           },
           body: JSON.stringify({ chapter_id: chapter.id }),
         }
@@ -129,6 +130,7 @@ export default function CreateChapterPage() {
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${accessToken}`,
+              apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
             },
             body: JSON.stringify({ invitation_id: invitation.id }),
           });

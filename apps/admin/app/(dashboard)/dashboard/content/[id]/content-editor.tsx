@@ -166,6 +166,7 @@ export function ContentEditor({
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${session?.access_token ?? ""}`,
+            apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
           },
           body: JSON.stringify({
             chapter_id: chapterId,
@@ -213,6 +214,7 @@ export function ContentEditor({
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${session?.access_token ?? ""}`,
+            apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
           },
           body: JSON.stringify({
             chapter_id: chapterId,
