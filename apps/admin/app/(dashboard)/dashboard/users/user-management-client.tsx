@@ -61,6 +61,24 @@ const roleLabels: Record<string, string> = {
   coach: "coach",
 };
 
+async function getFreshAccessToken(supabase: ReturnType<typeof createClient>) {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  const isSessionValid =
+    !!session?.access_token &&
+    (!session.expires_at || session.expires_at * 1000 > Date.now() + 60_000);
+
+  if (isSessionValid) {
+    return session!.access_token;
+  }
+
+  const { data, error } = await supabase.auth.refreshSession();
+  if (error) return null;
+  return data.session?.access_token ?? null;
+}
+
 export function UserManagementClient({
   roles,
   invitations,
@@ -95,7 +113,7 @@ export function UserManagementClient({
 
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    const { data: { session } } = await supabase.auth.getSession();
+    const accessToken = await getFreshAccessToken(supabase);
 
     const { data: invitation, error } = await supabase.from("invitations").insert({
       chapter_id: chapterId,
@@ -114,16 +132,20 @@ export function UserManagementClient({
 
     // Send invitation email via Edge Function
     try {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-      await fetch(`${supabaseUrl}/functions/v1/send-invitation`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session?.access_token ?? ""}`,
-          apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
-        },
-        body: JSON.stringify({ invitation_id: invitation.id }),
-      });
+      if (accessToken) {
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+        await fetch(`${supabaseUrl}/functions/v1/send-invitation`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+            apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
+          },
+          body: JSON.stringify({ invitation_id: invitation.id }),
+        });
+      } else {
+        toast.warning("Invitation created, but email was not sent. Please sign in again.");
+      }
     } catch {
       // Email sending is best-effort; the invitation record is already created
       console.warn("Failed to send invitation email");

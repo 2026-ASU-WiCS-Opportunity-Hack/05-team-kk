@@ -53,8 +53,8 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    const body = await req.json();
-    const { chapter_slug, name, email, message } = body ?? {};
+    const payload = await req.json();
+    const { chapter_slug, name, email, message } = payload ?? {};
 
     // Validate inputs
     if (!chapter_slug || typeof chapter_slug !== "string") {
@@ -113,7 +113,7 @@ Deno.serve(async (req) => {
 
     // Send email via shared email utilities
     const primary = "#1A7A8A";
-    const body = `
+    const emailBody = `
       <h1 style="font-family:Lexend,sans-serif;color:${primary};font-size:24px;margin:0 0 16px;">
         New Contact Form Message
       </h1>
@@ -126,7 +126,7 @@ Deno.serve(async (req) => {
       to: chapter.contact_email,
       replyTo: email,
       subject: `New contact form message from ${name} — ${chapter.name}`,
-      html: emailLayout(body, { chapterName: chapter.name }),
+      html: emailLayout(emailBody, { chapterName: chapter.name }),
     });
 
     if (!result.success) {
@@ -156,4 +156,3 @@ Deno.serve(async (req) => {
     );
   }
 });
-

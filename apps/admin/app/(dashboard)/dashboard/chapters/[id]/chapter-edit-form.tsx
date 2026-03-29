@@ -21,6 +21,24 @@ import { useTranslations } from "next-intl";
 
 type Chapter = Tables<"chapters">;
 
+async function getFreshAccessToken(supabase: ReturnType<typeof createClient>) {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  const isSessionValid =
+    !!session?.access_token &&
+    (!session.expires_at || session.expires_at * 1000 > Date.now() + 60_000);
+
+  if (isSessionValid) {
+    return session!.access_token;
+  }
+
+  const { data, error } = await supabase.auth.refreshSession();
+  if (error) return null;
+  return data.session?.access_token ?? null;
+}
+
 export function ChapterEditForm({ chapter }: { chapter: Chapter }) {
   const router = useRouter();
   const t = useTranslations("ui.chapterForm");
@@ -31,15 +49,21 @@ export function ChapterEditForm({ chapter }: { chapter: Chapter }) {
   async function handleRetryProvision() {
     setProvisioning(true);
     const supabase = createClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    const accessToken = await getFreshAccessToken(supabase);
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+
+    if (!accessToken) {
+      toast.error("Session expired. Please sign in again.");
+      setProvisioning(false);
+      return;
+    }
 
     try {
       const res = await fetch(`${supabaseUrl}/functions/v1/provision-chapter`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${session?.access_token ?? ""}`,
+          Authorization: `Bearer ${accessToken}`,
           apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
         },
         body: JSON.stringify({ chapter_id: chapter.id }),

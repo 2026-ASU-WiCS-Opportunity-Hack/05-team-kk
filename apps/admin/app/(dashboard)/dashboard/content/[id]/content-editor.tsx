@@ -66,6 +66,24 @@ const contentTypeOptions = [
   "custom",
 ];
 
+async function getFreshAccessToken(supabase: ReturnType<typeof createClient>) {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  const isSessionValid =
+    !!session?.access_token &&
+    (!session.expires_at || session.expires_at * 1000 > Date.now() + 60_000);
+
+  if (isSessionValid) {
+    return session!.access_token;
+  }
+
+  const { data, error } = await supabase.auth.refreshSession();
+  if (error) return null;
+  return data.session?.access_token ?? null;
+}
+
 export function ContentEditor({
   block,
   chapterId,
@@ -155,7 +173,13 @@ export function ContentEditor({
     setGeneratedContent("");
 
     const supabase = createClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    const accessToken = await getFreshAccessToken(supabase);
+    if (!accessToken) {
+      toast.error("Session expired. Please sign in again.");
+      setGenerating(false);
+      return;
+    }
+
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 
     try {
@@ -165,7 +189,7 @@ export function ContentEditor({
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${session?.access_token ?? ""}`,
+            Authorization: `Bearer ${accessToken}`,
             apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
           },
           body: JSON.stringify({
@@ -203,7 +227,13 @@ export function ContentEditor({
     setTranslatedContent("");
 
     const supabase = createClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    const accessToken = await getFreshAccessToken(supabase);
+    if (!accessToken) {
+      toast.error("Session expired. Please sign in again.");
+      setTranslating(false);
+      return;
+    }
+
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 
     try {
@@ -213,7 +243,7 @@ export function ContentEditor({
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${session?.access_token ?? ""}`,
+            Authorization: `Bearer ${accessToken}`,
             apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
           },
           body: JSON.stringify({

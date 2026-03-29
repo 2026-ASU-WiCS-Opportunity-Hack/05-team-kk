@@ -18,6 +18,24 @@ function slugify(text: string): string {
     .replace(/(^-|-$)/g, "");
 }
 
+async function getFreshAccessToken(supabase: ReturnType<typeof createClient>) {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  const isSessionValid =
+    !!session?.access_token &&
+    (!session.expires_at || session.expires_at * 1000 > Date.now() + 60_000);
+
+  if (isSessionValid) {
+    return session!.access_token;
+  }
+
+  const { data, error } = await supabase.auth.refreshSession();
+  if (error) return null;
+  return data.session?.access_token ?? null;
+}
+
 export default function CreateChapterPage() {
   const router = useRouter();
   const t = useTranslations("ui.chapterForm");
@@ -47,7 +65,6 @@ export default function CreateChapterPage() {
     setLoading(true);
 
     const supabase = createClient();
-    const { data: { session } } = await supabase.auth.getSession();
     const { data: { user } } = await supabase.auth.getUser();
 
     // 1. Create chapter record
@@ -76,33 +93,37 @@ export default function CreateChapterPage() {
     }
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-    const accessToken = session?.access_token ?? "";
+    const accessToken = await getFreshAccessToken(supabase);
 
     // 2. Call provision-chapter Edge Function (best-effort)
-    try {
-      const provRes = await fetch(
-        `${supabaseUrl}/functions/v1/provision-chapter`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-            apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
-          },
-          body: JSON.stringify({ chapter_id: chapter.id }),
+    if (accessToken) {
+      try {
+        const provRes = await fetch(
+          `${supabaseUrl}/functions/v1/provision-chapter`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${accessToken}`,
+              apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
+            },
+            body: JSON.stringify({ chapter_id: chapter.id }),
+          }
+        );
+        if (!provRes.ok) {
+          const data = await provRes.json().catch(() => ({}));
+          console.warn("Provisioning warning:", data);
+          toast.warning(
+            t("warnings.provisioningFailed")
+          );
         }
-      );
-      if (!provRes.ok) {
-        const data = await provRes.json().catch(() => ({}));
-        console.warn("Provisioning warning:", data);
+      } catch {
         toast.warning(
           t("warnings.provisioningFailed")
         );
       }
-    } catch {
-      toast.warning(
-        t("warnings.provisioningFailed")
-      );
+    } else {
+      toast.warning(t("warnings.provisioningFailed"));
     }
 
     // 3. Create invitation for Chapter Lead if email provided
@@ -124,18 +145,20 @@ export default function CreateChapterPage() {
 
       if (invitation) {
         // Send invitation email (best-effort)
-        try {
-          await fetch(`${supabaseUrl}/functions/v1/send-invitation`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${accessToken}`,
-              apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
-            },
-            body: JSON.stringify({ invitation_id: invitation.id }),
-          });
-        } catch {
-          console.warn("Failed to send lead invitation email");
+        if (accessToken) {
+          try {
+            await fetch(`${supabaseUrl}/functions/v1/send-invitation`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${accessToken}`,
+                apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
+              },
+              body: JSON.stringify({ invitation_id: invitation.id }),
+            });
+          } catch {
+            console.warn("Failed to send lead invitation email");
+          }
         }
       }
     }

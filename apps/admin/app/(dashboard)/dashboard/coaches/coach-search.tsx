@@ -27,6 +27,24 @@ const certBadgeClass: Record<string, string> = {
   PALC: "bg-purple-100 text-purple-700 border-l-2 border-purple-600 dark:bg-purple-900/30 dark:text-purple-300",
 };
 
+async function getFreshAccessToken(supabase: ReturnType<typeof createClient>) {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  const isSessionValid =
+    !!session?.access_token &&
+    (!session.expires_at || session.expires_at * 1000 > Date.now() + 60_000);
+
+  if (isSessionValid) {
+    return session!.access_token;
+  }
+
+  const { data, error } = await supabase.auth.refreshSession();
+  if (error) return null;
+  return data.session?.access_token ?? null;
+}
+
 export function CoachSearch({ chapterId }: { chapterId?: string }) {
   const t = useTranslations("ui.coachSearch");
   const [query, setQuery] = useState("");
@@ -46,16 +64,19 @@ export function CoachSearch({ chapterId }: { chapterId?: string }) {
       setLoading(true);
       try {
         const supabase = createClient();
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+        const accessToken = await getFreshAccessToken(supabase);
+        if (!accessToken) {
+          console.error("Search aborted: no active session token");
+          setResults([]);
+          return;
+        }
 
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
         const res = await fetch(`${supabaseUrl}/functions/v1/semantic-search`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${session?.access_token ?? ""}`,
+            Authorization: `Bearer ${accessToken}`,
             apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
           },
           body: JSON.stringify({
