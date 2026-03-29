@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { sendEmail, emailLayout, escapeHtml } from "../_shared/email.ts";
+import { getBearerToken, getUserIdFromJwt } from "../_shared/auth.ts";
 
 const ADMIN_URL =
   Deno.env.get("ADMIN_DASHBOARD_URL") ?? "https://wial-admin.vercel.app";
@@ -11,8 +12,8 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
+    const token = getBearerToken(req);
+    if (!token) {
       return new Response(JSON.stringify({ error: "Missing authorization" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -27,14 +28,8 @@ Deno.serve(async (req) => {
       }
     );
 
-    // Verify the caller's JWT
-    const token = authHeader.replace("Bearer ", "");
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser(token);
-
-    if (authError || !user) {
+    const userId = getUserIdFromJwt(token);
+    if (!userId) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -73,7 +68,7 @@ Deno.serve(async (req) => {
     const { data: callerRoles } = await supabase
       .from("user_roles")
       .select("role, chapter_id")
-      .eq("user_id", user.id);
+      .eq("user_id", userId);
 
     const isSuperAdmin = callerRoles?.some((r) => r.role === "super_admin");
     const isChapterLead = callerRoles?.some(

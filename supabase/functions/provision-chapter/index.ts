@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import { getBearerToken, getUserIdFromJwt } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -287,21 +288,16 @@ Deno.serve(async (req) => {
     // -----------------------------------------------------------------------
     // Auth: verify caller is an authenticated super_admin
     // -----------------------------------------------------------------------
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
+    const token = getBearerToken(req);
+    if (!token) {
       return new Response(JSON.stringify({ error: "Missing authorization" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const token = authHeader.replace("Bearer ", "");
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser(token);
-
-    if (authError || !user) {
+    const userId = getUserIdFromJwt(token);
+    if (!userId) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -311,7 +307,7 @@ Deno.serve(async (req) => {
     const { data: roles, error: rolesError } = await supabase
       .from("user_roles")
       .select("role")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .eq("role", "super_admin")
       .limit(1);
 

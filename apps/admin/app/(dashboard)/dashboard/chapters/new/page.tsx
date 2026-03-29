@@ -84,7 +84,9 @@ export default function CreateChapterPage() {
       );
       if (provError) {
         console.warn("Provisioning warning:", provError);
-        toast.warning(t("warnings.provisioningFailed"));
+        toast.warning(
+          `${t("warnings.provisioningFailed")}${provError.message ? `: ${provError.message}` : ""}`
+        );
       }
     } catch {
       toast.warning(t("warnings.provisioningFailed"));
@@ -110,9 +112,18 @@ export default function CreateChapterPage() {
       if (invitation) {
         // Send invitation email (best-effort)
         try {
-          await invokeEdgeFunctionWithAuth(supabase, "send-invitation", {
+          const { error: inviteError } = await invokeEdgeFunctionWithAuth(
+            supabase,
+            "send-invitation",
+            {
             invitation_id: invitation.id,
-          });
+            }
+          );
+          if (inviteError) {
+            toast.warning(
+              `Invitation created, but email sending failed: ${inviteError.message}`
+            );
+          }
         } catch {
           console.warn("Failed to send lead invitation email");
         }
