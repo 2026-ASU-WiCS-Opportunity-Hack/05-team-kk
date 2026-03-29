@@ -9,7 +9,9 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
-    "scaffold-chapter": "node --experimental-strip-types scripts/scaffold-chapter.ts"
+    "scaffold-chapter": "node --experimental-strip-types scripts/scaffold-chapter.ts",
+    "clean-db": "node --experimental-strip-types scripts/clean-db.ts",
+    "seed-demo": "node --experimental-strip-types scripts/seed-demo.ts"
   },
   "devDependencies": {
     "prettier": "^3.2.5",
