@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
-import { getBearerToken, getUserIdFromJwt } from "../_shared/auth.ts";
+import { getBearerToken, getJwtPayload, getUserIdFromJwt } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -296,31 +296,56 @@ Deno.serve(async (req) => {
       });
     }
 
-    const userId = getUserIdFromJwt(token);
-    if (!userId) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const jwtPayload = getJwtPayload(token);
+    const isInternalServiceCall =
+      token === serviceRoleKey || jwtPayload?.role === "service_role";
+
+    let userId = getUserIdFromJwt(token);
+    let authFallbackError: string | null = null;
+    if (!userId && !isInternalServiceCall) {
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser(token);
+      if (!authError && user?.id) {
+        userId = user.id;
+      } else {
+        authFallbackError = authError?.message ?? "invalid access token";
+      }
     }
 
-    const { data: roles, error: rolesError } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .eq("role", "super_admin")
-      .limit(1);
-
-    if (rolesError || !roles || roles.length === 0) {
+    if (!userId && !isInternalServiceCall) {
       return new Response(
         JSON.stringify({
-          error: "Forbidden: only super admins can provision chapters",
+          error: "Unauthorized",
+          reason: authFallbackError ?? "invalid access token",
         }),
         {
-          status: 403,
+          status: 401,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
+    }
+
+    if (!isInternalServiceCall) {
+      const { data: roles, error: rolesError } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId!)
+        .eq("role", "super_admin")
+        .limit(1);
+
+      if (rolesError || !roles || roles.length === 0) {
+        return new Response(
+          JSON.stringify({
+            error: "Forbidden: only super admins can provision chapters",
+          }),
+          {
+            status: 403,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
     }
 
     // -----------------------------------------------------------------------

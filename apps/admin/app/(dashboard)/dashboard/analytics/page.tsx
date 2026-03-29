@@ -10,22 +10,11 @@ import {
   CardTitle,
 } from "@repo/ui/card";
 import {
-  BarChart3,
   Users,
   Calendar,
   Mail,
 } from "lucide-react";
-
-const MOCK_TOP_PAGES = [
-  { page: "landingPage", views: 4280 },
-  { page: "coachDirectory", views: 2150 },
-  { page: "about", views: 1830 },
-  { page: "events", views: 1240 },
-  { page: "contact", views: 980 },
-  { page: "testimonials", views: 760 },
-  { page: "resources", views: 520 },
-  { page: "membership", views: 410 },
-];
+import { AnalyticsTraffic } from "./analytics-traffic";
 
 export default async function AnalyticsPage() {
   const t = await getTranslations("nav");
@@ -103,56 +92,8 @@ export default async function AnalyticsPage() {
         </Card>
       </div>
 
-      {/* Website Traffic Chart Placeholder */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-muted-foreground" />
-            {tui("traffic.title")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center rounded-lg border border-dashed h-[240px]">
-            <div className="text-center text-muted-foreground">
-              <BarChart3 className="h-12 w-12 mx-auto mb-3 opacity-40" />
-              <p className="text-sm font-medium">{tui("traffic.comingSoon")}</p>
-              <p className="text-xs mt-1">{tui("traffic.poweredBy")}</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Top Pages (Cloudflare Analytics placeholder) */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{tui("topPages.title")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {MOCK_TOP_PAGES.map((page, i) => {
-              const maxViews = MOCK_TOP_PAGES[0]!.views;
-              const pct = (page.views / maxViews) * 100;
-              return (
-                <div key={page.page} className="flex items-center gap-3">
-                  <span className="w-5 text-sm text-muted-foreground text-right">{i + 1}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium truncate">{tui(`topPages.pages.${page.page}`)}</span>
-                      <span className="text-sm text-muted-foreground">{page.views.toLocaleString()}</span>
-                    </div>
-                    <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-primary"
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Website Traffic — Cloudflare Analytics (real data when configured, placeholder otherwise) */}
+      <AnalyticsTraffic />
     </div>
   );
 }

@@ -266,45 +266,97 @@ export function CoachEditForm({
       )}
 
       {/* My Certification — read-only for coaches */}
-      {isRestricted && (
-        <Card className="border-l-4" style={{ borderLeftColor: certLevelColor(coach.certification_level) }}>
-          <CardHeader><CardTitle className="flex items-center gap-2"><Award className="h-5 w-5" /> {tCoaches("myCertification")}</CardTitle></CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <p className="text-xs text-muted-foreground">{tCoaches("currentLevel")}</p>
-                <Badge className="mt-1" style={{ background: certLevelColor(coach.certification_level), color: "white" }}>
-                  {coach.certification_level}
-                </Badge>
+      {isRestricted && (() => {
+        const ceRequired = 20;
+        const ceProgress = Math.min(100, Math.round((coach.ce_credits_earned / ceRequired) * 100));
+        const hoursRequired = coach.certification_level === "CALC" ? 100 : coach.certification_level === "PALC" ? 200 : coach.certification_level === "SALC" ? 400 : 600;
+        const hoursProgress = Math.min(100, Math.round((coach.hours_logged / hoursRequired) * 100));
+        const daysUntilRecert = coach.recertification_due_date
+          ? Math.ceil((new Date(coach.recertification_due_date).getTime() - Date.now()) / 86400000)
+          : null;
+        const recertColor = daysUntilRecert === null ? "" : daysUntilRecert < 30 ? "text-destructive" : daysUntilRecert < 90 ? "text-amber-600" : "text-green-600";
+        const recertBgColor = daysUntilRecert === null ? "" : daysUntilRecert < 30 ? "bg-destructive" : daysUntilRecert < 90 ? "bg-amber-500" : "bg-green-500";
+
+        return (
+          <Card className="border-l-4" style={{ borderLeftColor: certLevelColor(coach.certification_level) }}>
+            <CardHeader><CardTitle className="flex items-center gap-2"><Award className="h-5 w-5" /> {tCoaches("myCertification")}</CardTitle></CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <p className="text-xs text-muted-foreground">{tCoaches("currentLevel")}</p>
+                  <Badge className="mt-1" style={{ background: certLevelColor(coach.certification_level), color: "white" }}>
+                    {coach.certification_level}
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">{tCoaches("approvalStatus")}</p>
+                  {coach.certification_approved ? (
+                    <Badge className="mt-1 bg-green-600 text-white">{tCoaches("approved")}</Badge>
+                  ) : (
+                    <Badge variant="outline" className="mt-1 border-amber-500 text-amber-600">{tCoaches("pendingApproval")}</Badge>
+                  )}
+                </div>
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground">{tCoaches("hoursLogged")}</p>
-                <p className="text-2xl font-bold flex items-center gap-1">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  {coach.hours_logged}
+
+              {/* Recertification timeline */}
+              {coach.recertification_due_date && daysUntilRecert !== null && (
+                <div className="rounded-lg border p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium">{tCoaches("recertDue")}</p>
+                    <p className={`text-sm font-semibold ${recertColor}`}>
+                      {daysUntilRecert < 0 ? t("labels.overdue") : t("labels.dueInDays", { days: daysUntilRecert })}
+                    </p>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {new Date(coach.recertification_due_date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                  </p>
+                  <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all ${recertBgColor}`}
+                      style={{ width: `${Math.max(0, Math.min(100, 100 - (daysUntilRecert / 730) * 100))}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">{tCoaches("twoYearCycle")}</p>
+                </div>
+              )}
+
+              {/* CE Credits progress */}
+              <div className="rounded-lg border p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium">{tCoaches("ceCredits")}</p>
+                  <p className="text-sm font-semibold">{coach.ce_credits_earned} / {ceRequired}</p>
+                </div>
+                <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-blue-500 transition-all"
+                    style={{ width: `${ceProgress}%` }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {ceProgress >= 100 ? tCoaches("ceComplete") : tCoaches("ceRemaining", { remaining: ceRequired - coach.ce_credits_earned })}
                 </p>
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground">{tCoaches("recertDue")}</p>
-                {coach.recertification_due_date ? (() => {
-                  const days = Math.ceil((new Date(coach.recertification_due_date).getTime() - Date.now()) / 86400000);
-                  const color = days < 30 ? "text-destructive" : days < 90 ? "text-amber-600" : "text-green-600";
-                  return (
-                    <p className={`font-medium ${color}`}>
-                      {new Date(coach.recertification_due_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                      <span className="text-xs ml-1">({days < 0 ? t("labels.overdue") : t("labels.days", { days })})</span>
-                    </p>
-                  );
-                })() : <p className="text-muted-foreground">{t("labels.notSet")}</p>}
+
+              {/* Hours progress */}
+              <div className="rounded-lg border p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium">{tCoaches("hoursLogged")}</p>
+                  <p className="text-sm font-semibold">{coach.hours_logged} / {hoursRequired}</p>
+                </div>
+                <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-emerald-500 transition-all"
+                    style={{ width: `${hoursProgress}%` }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {hoursProgress >= 100 ? tCoaches("hoursComplete") : tCoaches("hoursRemaining", { remaining: hoursRequired - coach.hours_logged, nextLevel: coach.certification_level === "CALC" ? "PALC" : coach.certification_level === "PALC" ? "SALC" : "MALC" })}
+                </p>
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground">{tCoaches("ceCredits")}</p>
-                <p className="text-2xl font-bold">{coach.ce_credits_earned}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+            </CardContent>
+          </Card>
+        );
+      })()}
 
       <Card>
         <CardHeader><CardTitle>{t("sections.locationContact")}</CardTitle></CardHeader>

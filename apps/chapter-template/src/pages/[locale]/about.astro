@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "@repo/template-core/layouts/BaseLayout.astro";
+import ClientLogos from "@repo/template-core/components/ClientLogos.astro";
 import { getChapterData } from "@repo/template-core/lib/data";
 import { getBlock } from "@repo/template-core/lib/content";
 
@@ -13,7 +14,7 @@ export async function getStaticPaths() {
 
 const { locale } = Astro.params;
 const slug = import.meta.env.CHAPTER_SLUG;
-const { chapter, contentBlocks } = await getChapterData(slug, locale);
+const { chapter, contentBlocks, clientOrganizations } = await getChapterData(slug, locale);
 
 const title = getBlock(contentBlocks, "about_title", `About ${chapter.name}`);
 const body = getBlock(contentBlocks, "about_body", "");
@@ -63,4 +64,7 @@ const imageUrl = getBlock(contentBlocks, "about_image_url", "");
       </div>
     </section>
   )}
+
+  {/* Client Organizations */}
+  <ClientLogos clients={clientOrganizations} title="Organizations We Work With" />
 </BaseLayout>

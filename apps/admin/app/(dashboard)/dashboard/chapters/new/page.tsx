@@ -10,7 +10,6 @@ import { Label } from "@repo/ui/label";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { invokeEdgeFunctionWithAuth } from "@/lib/edge-functions";
 
 function slugify(text: string): string {
   return text
@@ -77,15 +76,21 @@ export default function CreateChapterPage() {
 
     // 2. Call provision-chapter Edge Function (best-effort)
     try {
-      const { error: provError } = await invokeEdgeFunctionWithAuth(
-        supabase,
-        "provision-chapter",
-        { chapter_id: chapter.id }
-      );
-      if (provError) {
-        console.warn("Provisioning warning:", provError);
+      const provisionResponse = await fetch("/api/chapters/provision", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chapter_id: chapter.id }),
+      });
+      const provisionPayload = await provisionResponse.json().catch(() => null);
+
+      if (!provisionResponse.ok) {
+        const provisionError = new Error(
+          provisionPayload?.error ??
+            `Provisioning failed with status ${provisionResponse.status}`
+        );
+        console.warn("Provisioning warning:", provisionError);
         toast.warning(
-          `${t("warnings.provisioningFailed")}${provError.message ? `: ${provError.message}` : ""}`
+          `${t("warnings.provisioningFailed")}: ${provisionError.message}`
         );
       }
     } catch {
@@ -112,16 +117,15 @@ export default function CreateChapterPage() {
       if (invitation) {
         // Send invitation email (best-effort)
         try {
-          const { error: inviteError } = await invokeEdgeFunctionWithAuth(
-            supabase,
-            "send-invitation",
-            {
-            invitation_id: invitation.id,
-            }
-          );
-          if (inviteError) {
+          const inviteResponse = await fetch("/api/invitations/send", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ invitation_id: invitation.id }),
+          });
+          const invitePayload = await inviteResponse.json().catch(() => null);
+          if (!inviteResponse.ok) {
             toast.warning(
-              `Invitation created, but email sending failed: ${inviteError.message}`
+              `Invitation created, but email sending failed: ${invitePayload?.error ?? `status ${inviteResponse.status}`}`
             );
           }
         } catch {

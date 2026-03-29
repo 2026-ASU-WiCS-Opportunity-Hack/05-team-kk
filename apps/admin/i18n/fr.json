@@ -107,7 +107,15 @@
     "notApprovedWarning": "Ce coach n'apparaîtra pas dans l'annuaire public tant qu'il n'aura pas été approuvé.",
     "myCertification": "Ma Certification",
     "currentLevel": "Niveau Actuel",
-    "hoursLogged": "Heures Enregistrées"
+    "hoursLogged": "Heures Enregistrées",
+    "approvalStatus": "Statut d'Approbation",
+    "approved": "Approuvé",
+    "pendingApproval": "En Attente d'Approbation",
+    "twoYearCycle": "Cycle de recertification de 2 ans",
+    "ceComplete": "Exigence de crédits CE satisfaite !",
+    "ceRemaining": "{remaining} crédits supplémentaires nécessaires pour la recertification",
+    "hoursComplete": "Exigence d'heures satisfaite pour le niveau suivant !",
+    "hoursRemaining": "{remaining} heures supplémentaires nécessaires pour avancer vers {nextLevel}"
   },
   "events": {
     "title": "Événements",
@@ -438,13 +446,20 @@
       },
       "table": {
         "registrations": "Registrations",
-        "chapter": "Chapter"
+        "chapter": "Chapter",
+        "name": "Nom",
+        "email": "Email",
+        "status": "Statut",
+        "date": "Date"
       },
       "labels": {
         "open": "Open",
+        "external": "Externe",
         "urlPlaceholder": "https://...",
-        "cityCountry": "City, Country"
-      }
+        "cityCountry": "Ville, Pays"
+      },
+      "attendees": "Participants",
+      "noAttendees": "Aucune inscription pour le moment."
     },
     "aiEditor": {
       "errors": {
@@ -812,9 +827,15 @@
         "newsletterSubscribers": "Active subscribers"
       },
       "traffic": {
-        "title": "Website Traffic",
-        "comingSoon": "Traffic chart coming soon",
-        "poweredBy": "Powered by Cloudflare Analytics"
+        "title": "Trafic du Site",
+        "comingSoon": "Graphique de trafic bientôt disponible",
+        "poweredBy": "Powered by Cloudflare Analytics",
+        "configureHint": "Configurez CLOUDFLARE_API_TOKEN et CLOUDFLARE_ACCOUNT_ID pour activer.",
+        "pageViews": "Pages Vues",
+        "uniqueVisitors": "Visiteurs Uniques",
+        "bandwidth": "Bande Passante",
+        "last30Days": "30 derniers jours",
+        "noData": "Aucune donnée de trafic pour cette période."
       },
       "topPages": {
         "title": "Top Pages",
@@ -875,7 +896,17 @@
         "description": "Description (optional)",
         "descriptionPlaceholder": "e.g. CALC certification payment",
         "submit": "Open Checkout"
-      }
+      },
+      "payments": "Paiements",
+      "stripeNotReady": "Les paiements en ligne ne sont pas encore disponibles pour votre chapitre. Contactez votre responsable de chapitre.",
+      "certificationPayment": "Frais de Certification",
+      "certificationPaymentDesc": "Payez vos frais de certification",
+      "duesPayment": "Cotisations du Chapitre",
+      "duesPaymentDesc": "Payez vos cotisations de membre",
+      "payNow": "Payer Maintenant",
+      "amount": "Montant (USD)",
+      "enterValidAmount": "Veuillez entrer un montant valide",
+      "recentPayments": "Paiements Récents"
     },
     "revenue": {
       "description": "Global payment overview across all chapters.",

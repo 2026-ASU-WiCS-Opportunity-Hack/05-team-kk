@@ -4,6 +4,7 @@ import HeroSection from "@repo/template-core/components/HeroSection.astro";
 import StatsStrip from "@repo/template-core/components/StatsStrip.astro";
 import CoachCard from "@repo/template-core/components/CoachCard.astro";
 import TestimonialCard from "@repo/template-core/components/TestimonialCard.astro";
+import ClientLogos from "@repo/template-core/components/ClientLogos.astro";
 import { getChapterData } from "@repo/template-core/lib/data";
 import { getBlock } from "@repo/template-core/lib/content";
 
@@ -17,7 +18,7 @@ export async function getStaticPaths() {
 
 const { locale } = Astro.params;
 const slug = import.meta.env.CHAPTER_SLUG;
-const { chapter, contentBlocks, coaches, featuredCoaches, featuredTestimonials } =
+const { chapter, contentBlocks, coaches, clientOrganizations, featuredCoaches, featuredTestimonials } =
   await getChapterData(slug, locale);
 
 const heroTitle = getBlock(contentBlocks, "hero_title", `Welcome to ${chapter.name}`);
@@ -138,4 +139,7 @@ const stats = [
       </div>
     </section>
   )}
+
+  {/* Client Organizations */}
+  <ClientLogos clients={clientOrganizations} />
 </BaseLayout>

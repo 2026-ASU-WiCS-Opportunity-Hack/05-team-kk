@@ -22,7 +22,6 @@ import { Avatar, AvatarFallback } from "@repo/ui/avatar";
 import { toast } from "sonner";
 import { Plus, Loader2, Trash2, Users, Mail } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { invokeEdgeFunctionWithAuth } from "@/lib/edge-functions";
 
 type RoleWithProfile = {
   id: string;
@@ -114,9 +113,17 @@ export function UserManagementClient({
 
     // Send invitation email via Edge Function
     try {
-      await invokeEdgeFunctionWithAuth(supabase, "send-invitation", {
-        invitation_id: invitation.id,
+      const response = await fetch("/api/invitations/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ invitation_id: invitation.id }),
       });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        toast.warning(
+          `Invitation created, but email sending failed: ${payload?.error ?? `status ${response.status}`}`
+        );
+      }
     } catch {
       // Email sending is best-effort; the invitation record is already created
       console.warn("Failed to send invitation email");

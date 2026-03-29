@@ -31,6 +31,7 @@ import { Input } from "@repo/ui/input";
 import { Label } from "@repo/ui/label";
 import { Textarea } from "@repo/ui/textarea";
 import { toast } from "sonner";
+import { Badge } from "@repo/ui/badge";
 import {
   Plus,
   Pencil,
@@ -39,6 +40,7 @@ import {
   Calendar,
   MapPin,
   Video,
+  Users,
 } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
 
@@ -47,6 +49,14 @@ const typeBadgeClass: Record<string, string> = {
   workshop: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300",
   meetup: "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300",
   webinar: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300",
+};
+
+type EventRegistration = {
+  id: string;
+  name: string;
+  email: string;
+  status: string;
+  registered_at: string;
 };
 
 type Event = {
@@ -67,6 +77,7 @@ type Event = {
   created_at: string;
   updated_at: string;
   chapters?: { name: string } | null;
+  event_registrations?: EventRegistration[];
 };
 
 const EVENT_TYPES = ["certification", "workshop", "meetup", "webinar"] as const;
@@ -95,6 +106,7 @@ export function EventsClient({
   const [filterType, setFilterType] = useState<string>("all");
   const [filterDate, setFilterDate] = useState<string>("upcoming");
   const [filterPublished, setFilterPublished] = useState<string>("all");
+  const [attendeesDialogEvent, setAttendeesDialogEvent] = useState<Event | null>(null);
 
   function formatDate(dateStr: string): string {
     return new Date(dateStr).toLocaleDateString(locale, {
@@ -342,12 +354,36 @@ export function EventsClient({
                       <span className="text-muted-foreground">—</span>
                     )}
                   </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {evt.registration_link ? (
-                      <span>{evt.max_attendees ? `0 / ${evt.max_attendees}` : tui("labels.open")}</span>
-                    ) : (
-                      <span>—</span>
-                    )}
+                  <TableCell className="text-sm">
+                    {(() => {
+                      const regs = evt.event_registrations ?? [];
+                      const confirmed = regs.filter((r) => r.status === "confirmed").length;
+                      const waitlisted = regs.filter((r) => r.status === "waitlisted").length;
+                      const total = confirmed + waitlisted;
+
+                      if (total === 0 && evt.registration_link) {
+                        return <span className="text-muted-foreground">{tui("labels.external")}</span>;
+                      }
+                      if (total === 0) {
+                        return <span className="text-muted-foreground">0</span>;
+                      }
+
+                      return (
+                        <button
+                          type="button"
+                          className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+                          onClick={() => setAttendeesDialogEvent(evt)}
+                        >
+                          <Users className="h-3.5 w-3.5" />
+                          {confirmed}{evt.max_attendees ? ` / ${evt.max_attendees}` : ""}
+                          {waitlisted > 0 && (
+                            <Badge variant="outline" className="text-[10px] ml-1">
+                              +{waitlisted} waitlist
+                            </Badge>
+                          )}
+                        </button>
+                      );
+                    })()}
                   </TableCell>
                   <TableCell>
                     <Switch
@@ -387,6 +423,47 @@ export function EventsClient({
           </Table>
         </div>
       )}
+
+      {/* Attendees Dialog */}
+      <Dialog open={!!attendeesDialogEvent} onOpenChange={() => setAttendeesDialogEvent(null)}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {tui("attendees")} — {attendeesDialogEvent?.title}
+            </DialogTitle>
+          </DialogHeader>
+          {attendeesDialogEvent?.event_registrations && attendeesDialogEvent.event_registrations.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{tui("table.name")}</TableHead>
+                  <TableHead>{tui("table.email")}</TableHead>
+                  <TableHead>{tui("table.status")}</TableHead>
+                  <TableHead>{tui("table.date")}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {attendeesDialogEvent.event_registrations.map((reg) => (
+                  <TableRow key={reg.id}>
+                    <TableCell className="font-medium">{reg.name}</TableCell>
+                    <TableCell className="text-muted-foreground">{reg.email}</TableCell>
+                    <TableCell>
+                      <Badge variant={reg.status === "confirmed" ? "default" : "outline"} className="text-xs">
+                        {reg.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-xs">
+                      {new Date(reg.registered_at).toLocaleDateString()}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <p className="text-sm text-muted-foreground py-4 text-center">{tui("noAttendees")}</p>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

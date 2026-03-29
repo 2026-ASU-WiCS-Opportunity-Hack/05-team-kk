@@ -13,6 +13,7 @@ export async function getStaticPaths() {
 
 const { locale } = Astro.params;
 const slug = import.meta.env.CHAPTER_SLUG;
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
 const { contentBlocks, events } = await getChapterData(slug, locale);
 
 const title = getBlock(contentBlocks, "events_title", "Events");
@@ -157,7 +158,7 @@ const typeColors: Record<string, string> = {
                     )}
 
                     <div class="mt-4 flex items-center gap-2">
-                      {evt.registration_link && (
+                      {evt.registration_link ? (
                         <a
                           href={evt.registration_link}
                           target="_blank"
@@ -168,6 +169,15 @@ const typeColors: Record<string, string> = {
                           Register
                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
                         </a>
+                      ) : (
+                        <button
+                          type="button"
+                          class="rsvp-toggle inline-flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium text-white transition-colors"
+                          style={`background-color:var(--color-brand-accent);`}
+                          data-event-id={evt.id}
+                        >
+                          RSVP
+                        </button>
                       )}
                       <a
                         href={`data:text/calendar;charset=utf-8,${encodeURIComponent(generateICS(evt))}`}
@@ -179,6 +189,44 @@ const typeColors: Record<string, string> = {
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M12 14v4"/><path d="M10 16h4"/></svg>
                       </a>
                     </div>
+
+                    {/* Inline RSVP form (hidden by default) */}
+                    {!evt.registration_link && (
+                      <div class="rsvp-form hidden mt-4 rounded-lg border border-border-subtle bg-surface-muted p-4" data-event-id={evt.id}>
+                        <div class="space-y-3">
+                          <input
+                            type="text"
+                            placeholder="Your name"
+                            class="rsvp-name w-full px-3 py-2 rounded-lg border border-border bg-surface text-text-primary placeholder-text-muted text-sm focus:outline-none focus:border-brand-primary"
+                            required
+                          />
+                          <input
+                            type="email"
+                            placeholder="Your email"
+                            class="rsvp-email w-full px-3 py-2 rounded-lg border border-border bg-surface text-text-primary placeholder-text-muted text-sm focus:outline-none focus:border-brand-primary"
+                            required
+                          />
+                          <div class="flex gap-2">
+                            <button
+                              type="button"
+                              class="rsvp-submit inline-flex items-center gap-1 rounded-lg px-4 py-2 text-sm font-medium text-white"
+                              style={`background-color:var(--color-brand-primary);`}
+                              data-event-id={evt.id}
+                            >
+                              Confirm RSVP
+                            </button>
+                            <button
+                              type="button"
+                              class="rsvp-cancel rounded-lg px-4 py-2 text-sm font-medium text-text-secondary border border-border hover:bg-surface"
+                              data-event-id={evt.id}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                          <p class="rsvp-message hidden text-sm"></p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -223,4 +271,81 @@ const typeColors: Record<string, string> = {
       )}
     </div>
   </section>
+
+  {/* RSVP Script */}
+  <script define:vars={{ supabaseUrl }}>
+    // Toggle RSVP form
+    document.querySelectorAll(".rsvp-toggle").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const eventId = btn.dataset.eventId;
+        const form = document.querySelector(`.rsvp-form[data-event-id="${eventId}"]`);
+        if (form) form.classList.toggle("hidden");
+      });
+    });
+
+    // Cancel RSVP form
+    document.querySelectorAll(".rsvp-cancel").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const eventId = btn.dataset.eventId;
+        const form = document.querySelector(`.rsvp-form[data-event-id="${eventId}"]`);
+        if (form) form.classList.add("hidden");
+      });
+    });
+
+    // Submit RSVP
+    document.querySelectorAll(".rsvp-submit").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const eventId = btn.dataset.eventId;
+        const form = document.querySelector(`.rsvp-form[data-event-id="${eventId}"]`);
+        if (!form || !supabaseUrl) return;
+
+        const nameInput = form.querySelector(".rsvp-name");
+        const emailInput = form.querySelector(".rsvp-email");
+        const message = form.querySelector(".rsvp-message");
+        const name = nameInput?.value?.trim();
+        const email = emailInput?.value?.trim();
+
+        if (!name || !email) {
+          message.textContent = "Please enter your name and email.";
+          message.className = "rsvp-message text-sm text-destructive";
+          message.classList.remove("hidden");
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = "Registering...";
+
+        try {
+          const res = await fetch(supabaseUrl + "/functions/v1/event-register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ event_id: eventId, name, email }),
+          });
+
+          const data = await res.json();
+
+          if (res.ok) {
+            message.textContent = data.message;
+            message.className = "rsvp-message text-sm text-green-600";
+            message.classList.remove("hidden");
+            nameInput.disabled = true;
+            emailInput.disabled = true;
+            btn.textContent = "Registered!";
+          } else {
+            message.textContent = data.error || "Registration failed.";
+            message.className = "rsvp-message text-sm text-destructive";
+            message.classList.remove("hidden");
+            btn.disabled = false;
+            btn.textContent = "Confirm RSVP";
+          }
+        } catch {
+          message.textContent = "Something went wrong. Please try again.";
+          message.className = "rsvp-message text-sm text-destructive";
+          message.classList.remove("hidden");
+          btn.disabled = false;
+          btn.textContent = "Confirm RSVP";
+        }
+      });
+    });
+  </script>
 </BaseLayout>

@@ -1,7 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { sendEmail, emailLayout, escapeHtml } from "../_shared/email.ts";
-import { getBearerToken, getUserIdFromJwt } from "../_shared/auth.ts";
+import { getBearerToken, getJwtPayload, getUserIdFromJwt } from "../_shared/auth.ts";
 
 const ADMIN_URL =
   Deno.env.get("ADMIN_DASHBOARD_URL") ?? "https://wial-admin.vercel.app";
@@ -28,12 +28,36 @@ Deno.serve(async (req) => {
       }
     );
 
-    const userId = getUserIdFromJwt(token);
-    if (!userId) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const jwtPayload = getJwtPayload(token);
+    const isInternalServiceCall =
+      token === serviceRoleKey || jwtPayload?.role === "service_role";
+
+    let userId = getUserIdFromJwt(token);
+    let authFallbackError: string | null = null;
+    if (!userId && !isInternalServiceCall) {
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser(token);
+      if (!authError && user?.id) {
+        userId = user.id;
+      } else {
+        authFallbackError = authError?.message ?? "invalid access token";
+      }
+    }
+
+    if (!userId && !isInternalServiceCall) {
+      return new Response(
+        JSON.stringify({
+          error: "Unauthorized",
+          reason: authFallbackError ?? "invalid access token",
+        }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     }
 
     const { invitation_id } = await req.json();
@@ -65,22 +89,24 @@ Deno.serve(async (req) => {
     }
 
     // Verify caller has permission for this chapter
-    const { data: callerRoles } = await supabase
-      .from("user_roles")
-      .select("role, chapter_id")
-      .eq("user_id", userId);
+    if (!isInternalServiceCall) {
+      const { data: callerRoles } = await supabase
+        .from("user_roles")
+        .select("role, chapter_id")
+        .eq("user_id", userId!);
 
-    const isSuperAdmin = callerRoles?.some((r) => r.role === "super_admin");
-    const isChapterLead = callerRoles?.some(
-      (r) =>
-        r.chapter_id === invitation.chapter_id && r.role === "chapter_lead"
-    );
+      const isSuperAdmin = callerRoles?.some((r) => r.role === "super_admin");
+      const isChapterLead = callerRoles?.some(
+        (r) =>
+          r.chapter_id === invitation.chapter_id && r.role === "chapter_lead"
+      );
 
-    if (!isSuperAdmin && !isChapterLead) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      if (!isSuperAdmin && !isChapterLead) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     const chapterName =

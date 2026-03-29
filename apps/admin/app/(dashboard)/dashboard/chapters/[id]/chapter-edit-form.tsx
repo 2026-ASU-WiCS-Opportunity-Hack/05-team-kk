@@ -18,7 +18,6 @@ import { toast } from "sonner";
 import { Loader2, AlertTriangle } from "lucide-react";
 import type { Tables } from "@repo/types";
 import { useTranslations } from "next-intl";
-import { invokeEdgeFunctionWithAuth } from "@/lib/edge-functions";
 
 type Chapter = Tables<"chapters">;
 
@@ -31,16 +30,20 @@ export function ChapterEditForm({ chapter }: { chapter: Chapter }) {
 
   async function handleRetryProvision() {
     setProvisioning(true);
-    const supabase = createClient();
 
     try {
-      const { error } = await invokeEdgeFunctionWithAuth(
-        supabase,
-        "provision-chapter",
-        { chapter_id: chapter.id }
-      );
-      if (error) {
-        toast.error(error.message ?? t("errors.provisioningFailed"));
+      const response = await fetch("/api/chapters/provision", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chapter_id: chapter.id }),
+      });
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        toast.error(
+          payload?.error ??
+            `Provisioning failed with status ${response.status}`
+        );
       } else {
         toast.success(t("messages.provisionSuccess"));
         router.refresh();

@@ -33,7 +33,7 @@ export default async function EventsPage() {
 
   let query = supabase
     .from("events")
-    .select("*, chapters(name)")
+    .select("*, chapters(name), event_registrations(id, name, email, status, registered_at)")
     .order("start_date", { ascending: false });
 
   if (resolvedChapterId) {

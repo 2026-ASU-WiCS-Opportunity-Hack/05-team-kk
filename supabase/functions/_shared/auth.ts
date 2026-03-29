@@ -9,19 +9,27 @@ export function getBearerToken(req: Request): string | null {
   return authHeader.trim() || null;
 }
 
-export function getUserIdFromJwt(token: string): string | null {
+export type JwtPayload = {
+  sub?: string;
+  role?: string;
+};
+
+export function getJwtPayload(token: string): JwtPayload | null {
   const parts = token.split(".");
   if (parts.length !== 3) return null;
 
   try {
     const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
     const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, "=");
-    const payload = JSON.parse(atob(padded)) as { sub?: unknown };
-
-    return typeof payload.sub === "string" && payload.sub.length > 0
-      ? payload.sub
-      : null;
+    return JSON.parse(atob(padded)) as JwtPayload;
   } catch {
     return null;
   }
+}
+
+export function getUserIdFromJwt(token: string): string | null {
+  const payload = getJwtPayload(token);
+  return typeof payload?.sub === "string" && payload.sub.length > 0
+    ? payload.sub
+    : null;
 }

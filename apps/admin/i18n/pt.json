@@ -107,7 +107,15 @@
     "notApprovedWarning": "Este coach não aparecerá no diretório público até ser aprovado.",
     "myCertification": "Minha Certificação",
     "currentLevel": "Nível Atual",
-    "hoursLogged": "Horas Registradas"
+    "hoursLogged": "Horas Registradas",
+    "approvalStatus": "Status de Aprovação",
+    "approved": "Aprovado",
+    "pendingApproval": "Aprovação Pendente",
+    "twoYearCycle": "Ciclo de recertificação de 2 anos",
+    "ceComplete": "Requisito de créditos CE cumprido!",
+    "ceRemaining": "{remaining} créditos adicionais necessários para a recertificação",
+    "hoursComplete": "Requisito de horas cumprido para o próximo nível!",
+    "hoursRemaining": "{remaining} horas adicionais necessárias para avançar para {nextLevel}"
   },
   "events": {
     "title": "Eventos",
@@ -438,13 +446,20 @@
       },
       "table": {
         "registrations": "Registrations",
-        "chapter": "Chapter"
+        "chapter": "Chapter",
+        "name": "Nome",
+        "email": "Email",
+        "status": "Status",
+        "date": "Data"
       },
       "labels": {
         "open": "Open",
+        "external": "Externo",
         "urlPlaceholder": "https://...",
-        "cityCountry": "City, Country"
-      }
+        "cityCountry": "Cidade, País"
+      },
+      "attendees": "Participantes",
+      "noAttendees": "Nenhum registro ainda."
     },
     "aiEditor": {
       "errors": {
@@ -812,9 +827,15 @@
         "newsletterSubscribers": "Active subscribers"
       },
       "traffic": {
-        "title": "Website Traffic",
-        "comingSoon": "Traffic chart coming soon",
-        "poweredBy": "Powered by Cloudflare Analytics"
+        "title": "Tráfego do Site",
+        "comingSoon": "Gráfico de tráfego em breve",
+        "poweredBy": "Powered by Cloudflare Analytics",
+        "configureHint": "Configure CLOUDFLARE_API_TOKEN e CLOUDFLARE_ACCOUNT_ID para habilitar.",
+        "pageViews": "Visualizações",
+        "uniqueVisitors": "Visitantes Únicos",
+        "bandwidth": "Largura de Banda",
+        "last30Days": "Últimos 30 dias",
+        "noData": "Sem dados de tráfego para este período."
       },
       "topPages": {
         "title": "Top Pages",
@@ -875,7 +896,17 @@
         "description": "Description (optional)",
         "descriptionPlaceholder": "e.g. CALC certification payment",
         "submit": "Open Checkout"
-      }
+      },
+      "payments": "Pagamentos",
+      "stripeNotReady": "Pagamentos online ainda não estão disponíveis para o seu capítulo. Entre em contato com o líder do capítulo.",
+      "certificationPayment": "Taxa de Certificação",
+      "certificationPaymentDesc": "Pague sua taxa de certificação",
+      "duesPayment": "Mensalidades do Capítulo",
+      "duesPaymentDesc": "Pague suas mensalidades de membro",
+      "payNow": "Pagar Agora",
+      "amount": "Valor (USD)",
+      "enterValidAmount": "Insira um valor válido",
+      "recentPayments": "Pagamentos Recentes"
     },
     "revenue": {
       "description": "Global payment overview across all chapters.",

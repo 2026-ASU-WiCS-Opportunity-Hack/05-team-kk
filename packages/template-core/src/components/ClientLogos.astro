@@ -1,0 +1,53 @@
+---
+import type { Tables } from "@repo/types";
+
+interface Props {
+  clients: Tables<"client_organizations">[];
+  title?: string;
+  description?: string;
+}
+
+const { clients, title = "Trusted By", description } = Astro.props;
+---
+
+{clients.length > 0 && (
+  <section class="py-16 md:py-20 bg-surface-muted" aria-labelledby="clients-heading">
+    <div class="mx-auto max-w-[1200px] px-4 sm:px-6">
+      <div class="text-center mb-10">
+        <h2 id="clients-heading" class="text-3xl font-bold font-heading mb-3">
+          {title}
+        </h2>
+        {description && (
+          <p class="text-text-secondary max-w-xl mx-auto">{description}</p>
+        )}
+      </div>
+
+      <div class="flex flex-wrap items-center justify-center gap-8 md:gap-12">
+        {clients.map((client) => (
+          <a
+            href={client.website_url || "#"}
+            target={client.website_url ? "_blank" : undefined}
+            rel={client.website_url ? "noopener noreferrer" : undefined}
+            class="group flex flex-col items-center gap-3 transition-opacity hover:opacity-80"
+            title={client.name}
+          >
+            {client.logo_url ? (
+              <img
+                src={client.logo_url}
+                alt={client.name}
+                class="h-12 md:h-16 w-auto max-w-[160px] object-contain grayscale group-hover:grayscale-0 transition-all duration-300"
+                loading="lazy"
+              />
+            ) : (
+              <div
+                class="h-12 md:h-16 px-6 flex items-center justify-center rounded-lg border border-border bg-surface"
+              >
+                <span class="text-sm font-medium text-text-secondary font-heading">{client.name}</span>
+              </div>
+            )}
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+)}

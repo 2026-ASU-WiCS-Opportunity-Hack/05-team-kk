@@ -107,7 +107,15 @@
     "notApprovedWarning": "Este coach no aparecerá en el directorio público hasta que sea aprobado.",
     "myCertification": "Mi Certificación",
     "currentLevel": "Nivel Actual",
-    "hoursLogged": "Horas Registradas"
+    "hoursLogged": "Horas Registradas",
+    "approvalStatus": "Estado de Aprobación",
+    "approved": "Aprobado",
+    "pendingApproval": "Aprobación Pendiente",
+    "twoYearCycle": "Ciclo de recertificación de 2 años",
+    "ceComplete": "Requisito de créditos CE cumplido!",
+    "ceRemaining": "{remaining} créditos más necesarios para la recertificación",
+    "hoursComplete": "Requisito de horas cumplido para el siguiente nivel!",
+    "hoursRemaining": "{remaining} horas más necesarias para avanzar a {nextLevel}"
   },
   "events": {
     "title": "Eventos",
@@ -438,13 +446,20 @@
       },
       "table": {
         "registrations": "Registrations",
-        "chapter": "Chapter"
+        "chapter": "Chapter",
+        "name": "Nombre",
+        "email": "Correo",
+        "status": "Estado",
+        "date": "Fecha"
       },
       "labels": {
         "open": "Open",
+        "external": "Externo",
         "urlPlaceholder": "https://...",
-        "cityCountry": "City, Country"
-      }
+        "cityCountry": "Ciudad, País"
+      },
+      "attendees": "Asistentes",
+      "noAttendees": "Aún no hay registros."
     },
     "aiEditor": {
       "errors": {
@@ -812,9 +827,15 @@
         "newsletterSubscribers": "Active subscribers"
       },
       "traffic": {
-        "title": "Website Traffic",
-        "comingSoon": "Traffic chart coming soon",
-        "poweredBy": "Powered by Cloudflare Analytics"
+        "title": "Tráfico del Sitio",
+        "comingSoon": "Gráfico de tráfico próximamente",
+        "poweredBy": "Powered by Cloudflare Analytics",
+        "configureHint": "Configure CLOUDFLARE_API_TOKEN y CLOUDFLARE_ACCOUNT_ID para habilitar.",
+        "pageViews": "Vistas de Página",
+        "uniqueVisitors": "Visitantes Únicos",
+        "bandwidth": "Ancho de Banda",
+        "last30Days": "Últimos 30 días",
+        "noData": "Sin datos de tráfico para este período."
       },
       "topPages": {
         "title": "Top Pages",
@@ -875,7 +896,17 @@
         "description": "Description (optional)",
         "descriptionPlaceholder": "e.g. CALC certification payment",
         "submit": "Open Checkout"
-      }
+      },
+      "payments": "Pagos",
+      "stripeNotReady": "Los pagos en línea aún no están disponibles para su capítulo. Contacte a su líder de capítulo.",
+      "certificationPayment": "Tarifa de Certificación",
+      "certificationPaymentDesc": "Pague su tarifa de certificación",
+      "duesPayment": "Cuotas del Capítulo",
+      "duesPaymentDesc": "Pague sus cuotas de membresía",
+      "payNow": "Pagar Ahora",
+      "amount": "Monto (USD)",
+      "enterValidAmount": "Ingrese un monto válido",
+      "recentPayments": "Pagos Recientes"
     },
     "revenue": {
       "description": "Global payment overview across all chapters.",

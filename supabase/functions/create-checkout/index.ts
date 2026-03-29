@@ -108,7 +108,7 @@ Deno.serve(async (req) => {
     });
   }
 
-  // Check caller has chapter_lead or super_admin role
+  // Check caller has chapter_lead, super_admin, or coach role (self-service)
   const { data: callerRoles } = await supabase
     .from("user_roles")
     .select("role, chapter_id")
@@ -118,12 +118,32 @@ Deno.serve(async (req) => {
   const isChapterLead = callerRoles?.some(
     (r) => r.chapter_id === chapter_id && r.role === "chapter_lead"
   );
+  const isCoachInChapter = callerRoles?.some(
+    (r) => r.chapter_id === chapter_id && r.role === "coach"
+  );
 
+  // Coaches can only create checkout for dues and certification (self-service)
   if (!isSuperAdmin && !isChapterLead) {
-    return new Response(JSON.stringify({ error: "Forbidden" }), {
-      status: 403,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    if (!isCoachInChapter) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    // Coaches can only pay for dues or certification, and only for their own email
+    const selfServiceTypes = ["dues", "certification"];
+    if (!selfServiceTypes.includes(payment_type)) {
+      return new Response(
+        JSON.stringify({ error: "Coaches can only create checkout for dues or certification" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    if (payer_email !== user.email) {
+      return new Response(
+        JSON.stringify({ error: "Coaches can only create checkout for their own email" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
   }
 
   // Rate limit: 10 checkouts/hour/chapter

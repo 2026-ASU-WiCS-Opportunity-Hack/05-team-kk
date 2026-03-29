@@ -110,7 +110,15 @@
     "notApprovedWarning": "This coach will not appear in the public directory until approved.",
     "myCertification": "My Certification",
     "currentLevel": "Current Level",
-    "hoursLogged": "Hours Logged"
+    "hoursLogged": "Hours Logged",
+    "approvalStatus": "Approval Status",
+    "approved": "Approved",
+    "pendingApproval": "Pending Approval",
+    "twoYearCycle": "2-year recertification cycle",
+    "ceComplete": "CE credit requirement met!",
+    "ceRemaining": "{remaining} more credits needed for recertification",
+    "hoursComplete": "Hours requirement met for next level!",
+    "hoursRemaining": "{remaining} more hours needed for {nextLevel} advancement"
   },
   "events": {
     "title": "Events",
@@ -441,13 +449,20 @@
       },
       "table": {
         "registrations": "Registrations",
-        "chapter": "Chapter"
+        "chapter": "Chapter",
+        "name": "Name",
+        "email": "Email",
+        "status": "Status",
+        "date": "Date"
       },
       "labels": {
         "open": "Open",
+        "external": "External",
         "urlPlaceholder": "https://...",
         "cityCountry": "City, Country"
-      }
+      },
+      "attendees": "Attendees",
+      "noAttendees": "No registrations yet."
     },
     "aiEditor": {
       "errors": {
@@ -817,7 +832,13 @@
       "traffic": {
         "title": "Website Traffic",
         "comingSoon": "Traffic chart coming soon",
-        "poweredBy": "Powered by Cloudflare Analytics"
+        "poweredBy": "Powered by Cloudflare Analytics",
+        "configureHint": "Set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID env vars to enable.",
+        "pageViews": "Page Views",
+        "uniqueVisitors": "Unique Visitors",
+        "bandwidth": "Bandwidth",
+        "last30Days": "Last 30 days",
+        "noData": "No traffic data for this period."
       },
       "topPages": {
         "title": "Top Pages",
@@ -906,7 +927,17 @@
         "pending": "Pending",
         "failed": "Failed",
         "refunded": "Refunded"
-      }
+      },
+      "payments": "Payments",
+      "stripeNotReady": "Online payments are not yet available for your chapter. Contact your chapter lead.",
+      "certificationPayment": "Certification Fee",
+      "certificationPaymentDesc": "Pay your certification fee",
+      "duesPayment": "Chapter Dues",
+      "duesPaymentDesc": "Pay your chapter membership dues",
+      "payNow": "Pay Now",
+      "amount": "Amount (USD)",
+      "enterValidAmount": "Please enter a valid amount",
+      "recentPayments": "Recent Payments"
     },
     "revenue": {
       "description": "Global payment overview across all chapters.",
